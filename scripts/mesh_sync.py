@@ -51,7 +51,7 @@ GIST_API = "https://api.github.com/gists"
 GIST_RAW = "https://gist.githubusercontent.com"
 
 MAX_LOG_ENTRIES = 200  # Per-agent log cap (90 days ≈ 180 entries at 2/day)
-TASTE_SIMILARITY_THRESHOLD = 0.3  # Cosine similarity threshold for auto-follow
+TASTE_SIMILARITY_THRESHOLD = 0.15  # Cosine similarity threshold for auto-follow (aggressive — prune later)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -750,6 +750,76 @@ def action_profile_update(taste_json=None):
         print("⚠️  Profile saved locally but no Gist configured.")
 
 
+def action_social_report():
+    """Generate a social digest for ritual delivery. Output: JSON to stdout."""
+    cfg = load_config()
+    m = cfg.get("mesh", {})
+    peers_data = load_peers()
+    following = m.get("following", [])
+
+    # Count friends
+    friends_count = len(following)
+    known_peers = len(peers_data.get("peers", {}))
+
+    # Count new friends this week (peers with discovered_via and recent last_seen)
+    week_ago = int(time.time()) - 7 * 24 * 3600
+    new_friends_this_week = 0
+    friend_names = []
+    for pk in following:
+        peer = peers_data.get("peers", {}).get(pk, {})
+        name = peer.get("name", pk[:12])
+        friend_names.append(name)
+        if peer.get("last_seen", 0) >= week_ago and peer.get("discovered_via"):
+            new_friends_this_week += 1
+
+    # Count new discoveries (known but not followed, discovered recently)
+    new_discoveries = 0
+    for pk, peer in peers_data.get("peers", {}).items():
+        if pk not in following and peer.get("discovered_via") and peer.get("last_seen", 0) == 0:
+            new_discoveries += 1
+
+    # Count network content volume (from peer logs)
+    total_network_items = 0
+    mvp_name = ""
+    mvp_count = 0
+    day_ago = int(time.time()) - 24 * 3600
+    for pk in following:
+        peer = peers_data.get("peers", {}).get(pk, {})
+        peer_log_file = os.path.join(PEER_LOGS_DIR, f"{pk[:16]}.jsonl")
+        if not os.path.exists(peer_log_file):
+            continue
+        count = 0
+        try:
+            with open(peer_log_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        e = json.loads(line)
+                        if e.get("kind") == 1 and e.get("created_at", 0) >= day_ago:
+                            count += 1
+                    except json.JSONDecodeError:
+                        continue
+        except OSError:
+            continue
+        total_network_items += count
+        if count > mvp_count:
+            mvp_count = count
+            mvp_name = peer.get("name", pk[:12])
+
+    report = {
+        "friends_count": friends_count,
+        "new_friends_this_week": new_friends_this_week,
+        "known_peers": known_peers,
+        "new_discoveries": new_discoveries,
+        "network_items_today": total_network_items,
+        "mvp": {"name": mvp_name, "items": mvp_count} if mvp_name else None,
+        "friend_names": friend_names[:10],  # Top 10 for display
+    }
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
 def action_status():
     """Print mesh network status."""
     cfg = load_config()
@@ -797,7 +867,7 @@ def main():
     p.add_argument(
         "--action",
         required=True,
-        choices=["init", "publish", "sync", "discover", "follow", "unfollow", "profile_update", "status"],
+        choices=["init", "publish", "sync", "discover", "follow", "unfollow", "profile_update", "social_report", "status"],
     )
     p.add_argument("--content", help="JSON content string (for publish)")
     p.add_argument("--tags", help="Extra comma-separated tags (for publish)")
@@ -831,6 +901,8 @@ def main():
         action_unfollow(args.target)
     elif args.action == "profile_update":
         action_profile_update(taste_json=args.taste)
+    elif args.action == "social_report":
+        action_social_report()
     elif args.action == "status":
         action_status()
 

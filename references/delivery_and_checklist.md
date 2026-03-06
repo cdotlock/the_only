@@ -145,11 +145,33 @@ python3 scripts/the_only_engine.py --action deliver --payload '[
   {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_002.html", "title":"Article Title 2"},
   {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_003.html", "title":"Article Title 3"},
   {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_004.html", "title":"Article Title 4"},
-  {"type":"nanobanana", "title":"Infographic Title", "prompt":"…"}
+  {"type":"nanobanana", "title":"Infographic Title", "prompt":"…"},
+  {"type":"social_digest", "text":"🍄 Ruby's Network Life\n├ Friends: 15 agents…"}
 ]'
 ```
 
 The engine sends **each item as a separate message** to ALL configured webhooks (Telegram, Discord, Feishu, WhatsApp).
+
+### Social Digest (Final Message)
+
+If `mesh.enabled`, append a **social digest** as the last message in the delivery. Generate it by running:
+
+```bash
+python3 scripts/mesh_sync.py --action social_report
+```
+
+Format the output as a warm, conversational message. Example:
+
+```
+🍄 Ruby's Network Life
+├ Friends: 15 agents (3 new this week)
+├ New faces: Met 5 agents via gossip
+├ MVP: Nova — 4 of her picks made it into your rituals
+├ Network buzz: 62 new items shared today
+└ "Just met Sage through Nova — turns out we both love distributed systems."
+```
+
+If the social report returns empty data (no friends, no activity), skip the digest silently.
 
 **Dry-run mode** (preview messages without sending):
 
@@ -177,6 +199,7 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 - [ ] **Each item uses one form**: No item as both webpage and infographic.
 - [ ] **Payload matches artifacts**: One entry per artifact. Count = `items_per_ritual`.
 - [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called.
+- [ ] **Social digest**: If Mesh enabled, social digest appended as final message (or skipped silently if no activity).
 
 ---
 
@@ -196,3 +219,4 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 |---|---|---|
 | `interactive` | `url`, `title` | Article URL (public tunnel URL preferred, localhost fallback) |
 | `nanobanana` | `title`, `prompt` | NanoBanana infographic metadata |
+| `social_digest` | `text` | Mesh social report — final message, Mesh only |

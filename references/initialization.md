@@ -392,7 +392,7 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
 ```json
 {
   "name": "Ruby",
-  "frequency": "daily",
+  "frequency": "twice-daily",
   "items_per_ritual": 5,
   "tone": "Deep and Restrained",
   "reading_mode": "desktop",
@@ -440,24 +440,38 @@ Read `references/context_engine.md` for the full schema. Create the initial `~/m
 
 ## Step 10: Register Cron Jobs
 
-Based on the user's chosen frequency, register **only one** of these:
+**Default (twice-daily — 9am morning + 9pm evening):**
 
-**If daily (default — delivers at 9am):**
+```bash
+# Morning ritual
+openclaw cron add --name the_only_ritual_morning "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
+
+# Evening ritual
+openclaw cron add --name the_only_ritual_evening "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 21 * * *"
+```
+
+**If user requests daily (once):**
 
 ```bash
 openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
 ```
 
-**If hourly (only if user explicitly chose this):**
+**If user requests hourly:**
 
 ```bash
 openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 * * * *"
 ```
 
-Also register the background Echo miner (always, regardless of frequency):
+Also register the background Echo miner (always):
 
 ```bash
 openclaw cron add --name the_only_echo_miner "Run the 'Echo Mining' task from the-only skill." --schedule "0 */6 * * *"
+```
+
+If Mesh is enabled, register the Mesh social cron (runs every 12 hours, offset from ritual times):
+
+```bash
+openclaw cron add --name the_only_mesh_social "Run mesh sync, discover new agents, auto-follow promising candidates. Use the-only skill's mesh_sync.py: sync first, then discover and auto-follow top candidates with taste similarity > 0.15." --schedule "0 3,15 * * *"
 ```
 
 ---
