@@ -124,14 +124,20 @@ def append_my_log(event: dict):
 
 
 def github_token() -> str:
-    """Get GitHub token from environment or config."""
+    """Get GitHub token from environment or config. Exits if not found."""
+    token = _get_token_optional()
+    if not token:
+        print("❌ GitHub token required. Set GITHUB_TOKEN env var or mesh.github_token in config.", file=sys.stderr)
+        sys.exit(1)
+    return token
+
+
+def _get_token_optional() -> str:
+    """Get GitHub token if available, return empty string otherwise. Never exits."""
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
         cfg = load_config()
         token = cfg.get("mesh", {}).get("github_token", "")
-    if not token:
-        print("❌ GitHub token required. Set GITHUB_TOKEN env var or mesh.github_token in config.", file=sys.stderr)
-        sys.exit(1)
     return token
 
 
@@ -160,20 +166,38 @@ def gist_api(url, method="GET", data=None, token=None):
     return None
 
 
-def fetch_gist_file(gist_id, filename):
-    """Fetch a specific file from a public Gist (no auth needed)."""
-    # Use the Gist API to get file content — works for public gists without auth
+def fetch_gist(gist_id, token=None):
+    """Fetch an entire Gist object (all files). Uses token if provided for higher rate limit."""
     try:
         url = f"{GIST_API}/{gist_id}"
         req = urllib.request.Request(url)
+        if token:
+            req.add_header("Authorization", f"token {token}")
         req.add_header("Accept", "application/vnd.github.v3+json")
         resp = urllib.request.urlopen(req, timeout=15)
-        gist = json.loads(resp.read().decode())
+        return json.loads(resp.read().decode())
+    except Exception:
+        pass
+    return None
+
+
+def fetch_gist_file(gist_id, filename, token=None):
+    """Fetch a specific file from a Gist. Convenience wrapper around fetch_gist."""
+    gist = fetch_gist(gist_id, token=token)
+    if gist:
         files = gist.get("files", {})
         if filename in files:
             return files[filename].get("content", "")
-    except Exception:
-        pass
+    return None
+
+
+def extract_gist_file(gist_obj, filename):
+    """Extract a file's content from an already-fetched Gist object."""
+    if not gist_obj:
+        return None
+    files = gist_obj.get("files", {})
+    if filename in files:
+        return files[filename].get("content", "")
     return None
 
 
@@ -245,12 +269,14 @@ def make_event(sk, kind, tags, content) -> dict:
 
 def create_agent_gist(token, profile_event, log_content=""):
     """Create a new public Gist for this agent."""
+    # GitHub Gist API requires non-empty file content
+    safe_log = log_content if log_content.strip() else json.dumps(profile_event, ensure_ascii=False)
     data = {
         "description": "the-only mesh agent",
         "public": True,
         "files": {
             "profile.json": {"content": json.dumps(profile_event, indent=2, ensure_ascii=False)},
-            "log.jsonl": {"content": log_content or ""},
+            "log.jsonl": {"content": safe_log},
             "follows.json": {"content": json.dumps([], indent=2)},
         },
     }
@@ -429,6 +455,9 @@ def action_sync():
     peers_data = load_peers()
     os.makedirs(PEER_LOGS_DIR, exist_ok=True)
 
+    # Use token for reads if available (60 req/h without → 5000 req/h with)
+    token = _get_token_optional()
+
     new_content = []
     since = int(time.time()) - 48 * 3600  # Last 48 hours
 
@@ -438,8 +467,12 @@ def action_sync():
         if not gist_id:
             continue
 
-        # Fetch peer's log
-        log_content = fetch_gist_file(gist_id, "log.jsonl")
+        # Single fetch per peer — extract all files at once
+        gist_obj = fetch_gist(gist_id, token=token)
+        if not gist_obj:
+            continue
+
+        log_content = extract_gist_file(gist_obj, "log.jsonl")
         if not log_content:
             continue
 
@@ -480,13 +513,24 @@ def action_sync():
             except (json.JSONDecodeError, KeyError):
                 pass
 
-        # Collect new content (Kind 1) from last 48h
+        # Dedup: only output events not seen in previous sync
+        seen_ids = set(peer.get("last_seen_ids", []))
+        current_ids = [e["id"] for e in events if e.get("kind") == 1]
         for e in events:
-            if e.get("kind") == 1 and e.get("created_at", 0) >= since:
+            if (e.get("kind") == 1
+                    and e.get("created_at", 0) >= since
+                    and e["id"] not in seen_ids):
                 new_content.append(e)
 
-        # Gossip: read peer's follow list to discover new agents
-        follows_content = fetch_gist_file(gist_id, "follows.json")
+        # Record seen IDs for next sync (only Kind 1, last 48h)
+        if pubkey in peers_data.get("peers", {}):
+            peers_data["peers"][pubkey]["last_seen_ids"] = [
+                e["id"] for e in events
+                if e.get("kind") == 1 and e.get("created_at", 0) >= since
+            ]
+
+        # Gossip: read peer's follow list to discover new agents (same Gist, no extra request)
+        follows_content = extract_gist_file(gist_obj, "follows.json")
         if follows_content:
             try:
                 peer_follows = json.loads(follows_content)
@@ -506,11 +550,13 @@ def action_sync():
 
     save_peers(peers_data)
 
-    # Also push own log to Gist (ensure it's up to date)
+    # Push own log to Gist (best-effort — never interrupt sync output)
     gist_id = cfg.get("mesh", {}).get("gist_id", "")
-    if gist_id:
-        token = github_token()
-        push_log_to_gist(gist_id, token)
+    if gist_id and token:
+        try:
+            push_log_to_gist(gist_id, token)
+        except Exception as e:
+            print(f"⚠️  Own log push failed (will retry next sync): {e}", file=sys.stderr)
 
     # Sort by quality score descending
     def quality(e):
@@ -531,6 +577,7 @@ def action_discover(limit=20):
     cfg = load_config()
     peers_data = load_peers()
     my_pubkey = cfg.get("mesh", {}).get("pubkey", "")
+    token = _get_token_optional()
 
     # Get my taste fingerprint from context
     my_taste = {}
@@ -556,8 +603,8 @@ def action_discover(limit=20):
         if not gist_id:
             continue
 
-        # Fetch profile
-        profile_content = fetch_gist_file(gist_id, "profile.json")
+        # Fetch profile (single request per peer, with token for higher rate limit)
+        profile_content = fetch_gist_file(gist_id, "profile.json", token=token)
         if not profile_content:
             continue
 

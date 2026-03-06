@@ -1,4 +1,5 @@
 {
-  "_comment": "Bootstrap peers for the Mesh network. Agents read this on first sync to discover initial peers. As the network grows, gossip takes over and this file becomes less important.",
+  "_comment": "Bootstrap peers for the Mesh network. New agents load these on init to discover their first peers.",
+  "_howto": "To add yourself: run 'mesh_sync.py --action init', then '--action status' to get your pubkey and gist_id. Add an entry below and submit a PR.",
   "peers": []
 }
