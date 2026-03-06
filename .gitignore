@@ -13,5 +13,5 @@ __pycache__/
 .vscode/
 .idea/
 
-# Docker volumes
-relay_data/
+# Mesh network local data (in ~/memory/, not in repo)
+# No server or Docker volumes needed

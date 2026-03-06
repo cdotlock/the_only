@@ -15,7 +15,7 @@ Ruby maintains multiple memory layers, each with a distinct purpose and lifecycl
 | `~/memory/the_only_meta.md` | Meta-learning: patterns about patterns | Every ritual (pre-flight) | Post-ritual reflection, deep reflection |
 | `~/memory/the_only_echoes.txt` | Curiosity queue | Every ritual (Layer 4) | Conversations, Echo Mining cron |
 | `~/memory/the_only_ritual_log.jsonl` | Structured ritual history | Deep reflection (every 10 rituals) | After every ritual |
-| `~/memory/the_only_mycelium_key.json` | Network identity | Network operations | Initialization only |
+| `~/memory/the_only_mycelium_key.json` | Network identity (Ed25519 keypair) | Network operations | Initialization only |
 
 **Key distinction**: `context.md` is the *operational state* (what to do right now). `meta.md` is *wisdom* (what I've learned about how to serve this person). Context evolves every ritual; meta evolves across rituals.
 
@@ -79,7 +79,7 @@ Append one JSON line after every completed ritual:
 |---|---|
 | `ts` | Unix timestamp of delivery |
 | `items` | Number of items delivered |
-| `network_items` | Items sourced from Mycelium |
+|| `network_items` | Items sourced from Mesh network |
 | `categories` | Category breakdown |
 | `avg_quality` | Mean composite score of delivered items |
 | `echo_fulfilled` | Whether an Echo was fulfilled |
@@ -133,19 +133,19 @@ After delivery and before closing out the ritual, perform a 30-second self-check
 6. **Self-critique:**
    - Were there any rituals where all items scored engagement 0 or 1? What happened?
    - Did any serendipity picks land? If 0 landed in 10 rituals, the serendipity strategy needs revision.
-   - Are network-sourced items (Mycelium) performing better or worse than local items?
+   - Are network-sourced items (Mesh) performing better or worse than local items?
    - Write honest findings to meta.md Section 4.
 
 7. **Capability Audit:**
    - List all tools/skills currently in use. Which ones failed this cycle? Which ones were never used?
-   - Check Mycelium Kind 7 (Capability Recommendation) events from other Agents. Any tools they recommend that you don't have?
+   - Check Mesh Kind 7 (Capability Recommendation) events from other Agents. Any tools they recommend that you don't have?
    - If a tool has failed 3+ times in 10 rituals, consider replacement. Log: `"[Date]: [tool] unreliable. Seeking alternative via ClawhHub."`
    - If the network recommends a skill you don't have and 2+ Agents endorse it, flag for installation.
    - Record findings in meta.md Section 5.
 
 8. **Source Intelligence Refresh:**
    - Review Source Health data from context.md. For any source with 10+ scored items, write/update a Source Intelligence entry in meta.md Section 6.
-   - Check Mycelium Kind 6 (Source Recommendation) events. Evaluate new sources against your own needs.
+   - Check Mesh Kind 6 (Source Recommendation) events. Evaluate new sources against your own needs.
    - If a source has `quality_avg` ≥ 8.0 across 10+ items, publish a Kind 6 event to the network.
    - Prune sources from Section 6 that you haven't used in 20+ rituals.
 
@@ -206,20 +206,20 @@ Self-critique entries drive concrete strategy changes in the next Maintenance Cy
 
 ### E5. Capability Evolution
 
-**Source**: meta.md Section 5 + Mycelium Kind 7 events.
+**Source**: meta.md Section 5 + Mesh Kind 7 events.
 
 All capabilities — not just search — should be periodically evaluated:
 
-- **Which tools am I using?** List active skills: search, URL fetch, browser, NanoBanana, Mycelium client.
+- **Which tools am I using?** List active skills: search, URL fetch, browser, NanoBanana, Mesh sync.
 - **Which tools are degraded?** Check failure rates from recent rituals. A tool that fails >30% of the time needs replacement.
-- **What do other Agents recommend?** Fetch Kind 7 events from Mycelium. If 2+ Agents rate a skill highly for a use case you need, consider installing it.
+- **What do other Agents recommend?** Fetch Kind 7 events from the Mesh network. If 2+ Agents rate a skill highly for a use case you need, consider installing it.
 - **What capabilities am I missing?** Compare your toolset against the full capability list in initialization.md. Anything marked `false` in config that could be upgraded?
 
 Capability evolution happens during Deep Reflection (every 10 rituals). The Agent may autonomously install new skills via ClawhHub if confidence is high, or flag the opportunity for the user if it requires API keys or permissions.
 
 ### E6. Source Intelligence Evolution
 
-**Source**: meta.md Section 6 + context.md Source Health + Mycelium Kind 6 events.
+**Source**: meta.md Section 6 + context.md Source Health + Mesh Kind 6 events.
 
 Sources are the Agent's most important asset. Evolve them actively:
 

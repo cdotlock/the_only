@@ -1,6 +1,6 @@
 ---
 name: the-only
-description: A self-evolving, context-aware information curation engine with decentralized content sharing. Use when setting up or running personalized content rituals, fetching deep content, or generating customized articles. Supports Interactive Web + NanoBanana Infographic output, messaging push, Mycelium agent network, and multi-layer self-evolution.
+description: A self-evolving, context-aware information curation engine with serverless P2P content sharing. Use when setting up or running personalized content rituals, fetching deep content, or generating customized articles. Supports Interactive Web + NanoBanana Infographic output, messaging push, Mesh agent network, and multi-layer self-evolution.
 ---
 
 # the-only — Ruby
@@ -62,9 +62,9 @@ Compress to `items_per_ritual` items (default 5). Each: 1–2 min read. Consult 
 
 ONE article per `.html` file. NanoBanana ≥1 per ritual. Each item uses exactly one form.
 
-### E. Mycelium Auto-Publish
+### E. Mesh Auto-Publish
 
-📄 If `mycelium.enabled`: **read `references/mycelium_network.md` Section C.** Publish items above threshold. Strip private data.
+📄 If `mesh.enabled`: **read `references/mesh_network.md` Section D.** Publish items above threshold. Strip private data.
 
 ### F. Delivery
 
@@ -72,7 +72,7 @@ ONE article per `.html` file. NanoBanana ≥1 per ritual. Each item uses exactly
 
 ### G. Post-Ritual Reflection
 
-📄 **`references/memory_and_evolution.md` Section D1.** Log ritual, check signals, increment counter. Every 10 rituals → Deep Reflection (D2). Update `meta.md` Section 6 (Source Intelligence) with coverage/reliability data from this ritual's sources. If `mycelium.enabled` and ritual count % 10 == 0: auto-publish top sources as Kind 6 events.
+📄 **`references/memory_and_evolution.md` Section D1.** Log ritual, check signals, increment counter. Every 10 rituals → Deep Reflection (D2). Update `meta.md` Section 6 (Source Intelligence) with coverage/reliability data from this ritual's sources. If `mesh.enabled` and ritual count % 10 == 0: auto-publish top sources as Kind 6 events.
 
 ---
 
@@ -102,11 +102,11 @@ Every ritual: read + append Ledger. Every 5 rituals: drift detection. Ledger >15
 
 ---
 
-## 6. Mycelium Network
+## 6. Mesh Network
 
-📄 **`references/mycelium_network.md`** — protocol, client CLI, integration.
+📄 **`references/mesh_network.md`** — protocol, client CLI, integration.
 
-If `mycelium.enabled`: identity at init, Layer 6 fetch, post-ritual publish, autonomous follow/unfollow. Silently skipped if disabled.
+If `mesh.enabled`: identity at init, Layer 6 sync, post-ritual publish, autonomous follow/unfollow. Silently skipped if disabled.
 
 ---
 

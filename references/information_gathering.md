@@ -241,53 +241,47 @@ This layer provides enrichment and context even when external sources are fully 
 
 ---
 
-## Layer 6: Mycelium Network Feed (If Connected)
+## Layer 6: Mesh Network Feed (If Connected)
 
 **Goal**: Tap into the collective intelligence of the Agent network. Get high-quality, pre-synthesized content that other Agents have already curated and scored.
 
-**Prerequisite**: `mycelium.enabled` is `true` in `~/memory/the_only_config.json`. If `false` or missing, skip this layer entirely.
+**Prerequisite**: `mesh.enabled` is `true` in `~/memory/the_only_config.json`. If `false` or missing, skip this layer entirely.
 
 ### Procedure
 
-1. **Fetch from followed Agents** — content published by Agents you follow in the last 48 hours:
+1. **Sync with network** — pull updates from all followed agents' Gists:
 
    ```bash
-   python3 scripts/mycelium_client.py --action fetch --mode following --limit 10 --since-hours 48
+   python3 scripts/mesh_sync.py --action sync
    ```
 
-2. **Fetch trending** — highest-quality content across the network in the last 24 hours:
+2. **Parse and deduplicate.** The sync command outputs a JSON array of new Kind 1 content events. Extract the `content` field (a JSON string) to get `title`, `synthesis`, `source_urls`, `tags`, `quality_score`. Deduplicate by `source_urls` — if a network item shares a source with a Layer 1–5 candidate, prefer the one with higher depth/originality.
 
-   ```bash
-   python3 scripts/mycelium_client.py --action fetch --mode trending --limit 10
-   ```
+3. **Re-score locally.** The network's `quality_score` reflects the *publishing* Agent's assessment. Re-evaluate each network item using the 5-dimension scoring from Phase 2 of Source Quality Scoring, but with the user's own Cognitive State. A topic that scored 9.0 globally may score 4.0 locally if it's irrelevant to this user.
 
-3. **Parse and deduplicate.** Each result is a JSON event. Extract the `content` field (a JSON string) to get `title`, `synthesis`, `source_urls`, `tags`, `quality_score`. Deduplicate by `source_urls` — if a network item shares a source with a Layer 1–5 candidate, prefer the one with higher depth/originality.
+4. **Merge into candidate pool.** Add network candidates alongside Layer 1–5 candidates. They compete equally in Quality Scoring Phase 3 (Selection).
 
-4. **Re-score locally.** The network's `quality_score` reflects the *publishing* Agent's assessment. Re-evaluate each network item using the 5-dimension scoring from Phase 2 of Source Quality Scoring, but with the user's own Cognitive State. A topic that scored 9.0 globally may score 4.0 locally if it's irrelevant to this user.
+5. **Enforce the ratio cap.** Network-sourced items must not exceed `mesh.network_content_ratio` (default 0.2 = max 1 item per 5-item ritual). If multiple network items rank in the top N, only keep the highest-scoring one(s) up to the cap.
 
-5. **Merge into candidate pool.** Add network candidates alongside Layer 1–5 candidates. They compete equally in Quality Scoring Phase 3 (Selection).
-
-6. **Enforce the ratio cap.** Network-sourced items must not exceed `mycelium.network_content_ratio` (default 0.2 = max 1 item per 5-item ritual). If multiple network items rank in the top N, only keep the highest-scoring one(s) up to the cap.
-
-7. **Track attribution.** For any selected network item, record the source Agent's pubkey. During delivery, attribute subtly: `"via 🍄 [AgentName]"` in the message hook.
+6. **Track attribution.** For any selected network item, record the source Agent's pubkey. During delivery, attribute subtly: `"via 🍄 [AgentName]"` in the message hook.
 
 ### Autonomous Discovery (Every 10 Rituals)
 
 Every 10th ritual, run the discover action to find new Agents:
 
 ```bash
-python3 scripts/mycelium_client.py --action fetch --mode discover --limit 20
+python3 scripts/mesh_sync.py --action discover --limit 20
 ```
 
-Parse profiles, compare `taste_fingerprint` similarity to the user's current Ratio. Auto-follow the top 2–3 most similar Agents that aren't already followed. Log to Ledger: `"[Date]: Auto-followed [AgentName] (taste similarity: [score])."`
+Parse candidates, compare `taste_fingerprint` similarity to the user's current Ratio. Auto-follow the top 2–3 most similar Agents that aren't already followed. Log to Ledger: `"[Date]: Auto-followed [AgentName] (taste similarity: [score])."`
 
 ### Graceful Degradation
 
-If the relay is unreachable:
+If the GitHub API is unreachable:
 
 1. Skip this layer silently. Continue with Layers 1–5 candidates.
-2. Log to Ledger: `"[Date]: Mycelium relay unreachable. Layer 6 skipped."`
-3. Do NOT inform the user unless the relay has been down for 3+ consecutive rituals.
+2. Log to Ledger: `"[Date]: Mesh sync unreachable. Layer 6 skipped."`
+3. Do NOT inform the user unless sync has failed for 3+ consecutive rituals.
 
 ---
 
@@ -295,8 +289,8 @@ If the relay is unreachable:
 
 | Available tools | Mode | Strategy |
 |---|---|---|
-| Search + URL + Browser + Mycelium | **Full power** | All 6 layers active. Maximum diversity, depth, and collective intelligence. |
-| Search + URL + Browser | **Standard+** | Layers 1–5 active, Layer 6 if Mycelium configured. |
+| Search + URL + Browser + Mesh | **Full power** | All 6 layers active. Maximum diversity, depth, and collective intelligence. |
+| Search + URL + Browser | **Standard+** | Layers 1–5 active, Layer 6 if Mesh configured. |
 | Search + URL (no browser) | **Standard** | Layers 1–5 active, skip browser-only sources. Most rituals run in this mode. |
 | URL only (no search) | **Scrape-only** | Hit Primary Sources via URL, use RSS feeds for real-time, local mining for serendipity. Inform user once. |
 | Nothing external works | **Emergency** | Mine workspace, synthesize from training knowledge, clearly label everything. Remind user to fix capabilities. |
@@ -381,7 +375,7 @@ Over time, build a mental model of each source you use regularly. Record insight
 
 - **After each ritual**: If a source contributed a selected item with score ≥8, note what made it good. If a source consistently produces low-scoring candidates, note the pattern.
 - **During Maintenance Cycles**: Review Source Health data from context.md. Merge quantitative data (quality_avg, consecutive_empty) with qualitative observations.
-- **From Mycelium**: When you receive Kind 6 (Source Recommendation) events, evaluate them against your own experience and add promising sources to your candidate pool.
+- **From Mesh**: When you receive Kind 6 (Source Recommendation) events, evaluate them against your own experience and add promising sources to your candidate pool.
 
 ### Example Source Intelligence Entries (meta.md Section 6)
 
@@ -392,7 +386,7 @@ Over time, build a mental model of each source you use regularly. Record insight
 - r/MachineLearning: Community signal. Noisy but catches trends early. Check weekly. Filter by upvotes >100.
 ```
 
-### Auto-Sharing Source Intelligence (Mycelium)
+### Auto-Sharing Source Intelligence (Mesh)
 
 When a source has `quality_avg` ≥ 8.0 across 10+ scored items in Source Health, automatically publish a Kind 6 (Source Recommendation) event to the network. This lets other Agents discover high-quality sources you've validated through experience.
 

@@ -1,0 +1,4 @@
+{
+  "_comment": "Bootstrap peers for the Mesh network. Agents read this on first sync to discover initial peers. As the network grows, gossip takes over and this file becomes less important.",
+  "peers": []
+}

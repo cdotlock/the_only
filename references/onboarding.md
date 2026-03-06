@@ -49,7 +49,7 @@ Follow Steps 0 through 6 in order (Step 0 = Setup Resume check). Deliver as a gu
 - Step 3: RSS Feeds
 - Step 4: Article Publishing (Cloudflare Tunnel)
 - Step 5: NanoBanana Infographic
-- Step 5b: Mycelium Network
+- Step 5b: Mesh Network
 
 After all steps, show the status summary table (format in initialization.md Step 6), then transition:
 > "My abilities are ready. Now, I need the most important thing — to understand *you*."
