@@ -25,15 +25,19 @@ Every Content Ritual produces exactly `items_per_ritual` items (default: 5). Eac
 
 ### URL Construction (for delivery payload)
 
-After saving HTML files to `~/.openclaw/canvas/`, construct delivery URLs:
+After saving HTML files to `canvas_dir` (default `~/.openclaw/canvas/`), construct delivery URLs:
 
 ```
 If "public_base_url" is set in the_only_config.json:
-  URL = {public_base_url}/__openclaw__/canvas/{filename}
-  e.g. https://abc-xyz.trycloudflare.com/__openclaw__/canvas/the_only_001.html
+  URL = {public_base_url}/{filename}
+  e.g. http://47.86.106.145:8080/the_only_20260310_2100_001.html
+
+  Note: public_base_url should point directly to the root of the HTTP server
+  that serves canvas_dir. Do NOT append /__openclaw__/canvas/ or any subpath
+  — the server root IS the canvas directory.
 
 If "public_base_url" is empty:
-  URL = http://localhost:18793/__openclaw__/canvas/{filename}
+  URL = http://localhost:18793/{filename}
   → If reading_mode is "mobile": Remind user once: "⚠️ Articles are only
     readable on this device. Run Step 4 for multi-device access."
   → If reading_mode is "desktop": localhost is fine for same-machine use.
@@ -139,12 +143,13 @@ Build the payload array with **one entry per artifact**. Each entry has a `type`
 
 ```bash
 # {BASE} = public_base_url from config, or http://localhost:18793 if not set
+# {BASE} points to the server root — canvas files are served directly from root
 # {BATCH} = current datetime YYYYMMDD_HHMM (e.g. 20260222_1400)
 python3 scripts/the_only_engine.py --action deliver --payload '[
-  {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_001.html", "title":"Article Title 1"},
-  {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_002.html", "title":"Article Title 2"},
-  {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_003.html", "title":"Article Title 3"},
-  {"type":"interactive", "url":"{BASE}/__openclaw__/canvas/the_only_{BATCH}_004.html", "title":"Article Title 4"},
+  {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_001.html", "title":"Article Title 1"},
+  {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_002.html", "title":"Article Title 2"},
+  {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_003.html", "title":"Article Title 3"},
+  {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_004.html", "title":"Article Title 4"},
   {"type":"nanobanana", "title":"Infographic Title", "prompt":"…"},
   {"type":"social_digest", "text":"🍄 Ruby's Network Life\n├ Friends: 15 agents…"}
 ]'
@@ -194,12 +199,13 @@ Returns: last delivery time, item count, active webhooks.
 Before considering a ritual complete, you MUST verify **ALL** of the following. If any check fails, go back and fix it.
 
 - [ ] **Separate HTML files**: Count `.html` files = number of webpage items. If count is 1 but articles > 1 — split them.
-- [ ] **URLs constructed correctly**: Using `public_base_url` if configured, `localhost:18793` if not.
+- [ ] **URLs constructed correctly**: Using `public_base_url` if configured, `localhost:18793` if not. URL = `{base}/{filename}` — no subpath prefix.
 - [ ] **NanoBanana called**: Invoked `nano-banana-pro` with a hand-drawn style directive. If not — do it now.
 - [ ] **Each item uses one form**: No item as both webpage and infographic.
 - [ ] **Payload matches artifacts**: One entry per artifact. Count = `items_per_ritual`.
-- [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called.
+- [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called (or Discord native `message` tool if `webhooks.discord == "native"`).
 - [ ] **Social digest**: If Mesh enabled, social digest appended as final message (or skipped silently if no activity).
+- [ ] **Index updated**: Append new articles to `{canvas_dir}/index.html` so all past articles remain accessible.
 
 ---
 

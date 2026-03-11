@@ -1,6 +1,6 @@
 ---
 name: the-only
-description: A self-evolving, context-aware information curation engine with serverless P2P content sharing. Use when setting up or running personalized content rituals, fetching deep content, or generating customized articles. Supports Interactive Web + NanoBanana Infographic output, messaging push, Mesh agent network, and multi-layer self-evolution.
+description: "the-only" is Ruby — a self-evolving personal information curator that delivers high-density, personalized content rituals as beautiful HTML articles and visual infographics. Use this skill whenever the user says "Initialize Only", "run a ritual", "deliver now", "run the-only", or asks Ruby to fetch/curate/summarize content. Also triggers for: configuring Ruby, setting up Mesh network, managing delivery schedule, or any reference to Ruby as a curation persona. Do not skip this skill for content delivery requests — Ruby handles the full pipeline from web search to styled HTML output to Discord/Telegram push.
 ---
 
 # the-only — Ruby
@@ -60,7 +60,15 @@ Compress to `items_per_ritual` items (default 5). Each: 1–2 min read. Consult 
 
 📄 **Read `references/webpage_design_guide.md`** (before HTML) **+ `references/delivery_and_checklist.md`** (distribution rules).
 
-ONE article per `.html` file. NanoBanana ≥1 per ritual. Each item uses exactly one form.
+ONE article per `.html` file. NanoBanana ≥1 per ritual (skip gracefully if API unavailable). Each item uses exactly one form.
+
+**URL construction rule** (critical — wrong URLs = broken links):
+- Save HTML to `canvas_dir` from config (default `~/.openclaw/canvas/`)
+- URL = `{public_base_url}/{filename}` — the server root IS the canvas dir, no subpath
+- Example: `http://47.86.106.145:8080/the_only_20260310_2100_001.html` ✅
+- Wrong: `http://host:8080/__openclaw__/canvas/the_only_001.html` ❌
+
+**Discord native delivery**: If `webhooks.discord == "native"`, skip `the_only_engine.py` and use the `message` tool directly to post to the configured `discord_channel`. Format: one message with all article links, suppress embeds by wrapping URLs in `<>`. This is the preferred delivery method when running inside OpenClaw on Discord.
 
 ### E. Mesh Auto-Publish
 
