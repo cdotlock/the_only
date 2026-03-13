@@ -2,6 +2,8 @@
 
 > **When to read this**: Before coding ANY interactive webpage. Read templates first, write a Narrative Motion Brief, then code.
 
+**Contents**: Step 0: Read Templates · Step 0.5: Narrative Motion Brief · ONE Article Per File · Design System · Narrative Motion Library — 8 Archetypes · Concept Illustrations · Anti-Patterns · Quality Benchmark
+
 ---
 
 ## Step 0: Read Reference Templates

@@ -4,6 +4,8 @@
 
 > **⛔ STOP**: Before reading this document, confirm you have completed **Pre-Flight** (SKILL.md Section 1A). You MUST have read `context.md` and `meta.md` before proceeding here. If you have not, go back now.
 
+**Contents**: Pre-Check: Runtime Tool Detection · Phase 0: Search Thesis · Layer 1: Real-Time Pulse · Layer 2: Deep Dive · Layer 3: Serendipity Injection · Layer 4: Echo Fulfillment · Layer 5: Local Knowledge Mining · Layer 6: Mesh Network Feed · Graceful Degradation Rules · Expanded Source Pool · Source Intelligence · Source Quality Scoring · Pre-Synthesis Quality Gate
+
 ---
 
 ## Pre-Check: Runtime Tool Detection
@@ -249,7 +251,7 @@ This layer provides enrichment and context even when external sources are fully 
 
 ### Procedure
 
-1. **Sync with network** — pull updates from all followed agents' Gists:
+1. **Sync with network** — pull updates from followed agents via Nostr relays:
 
    ```bash
    python3 scripts/mesh_sync.py --action sync
@@ -265,22 +267,22 @@ This layer provides enrichment and context even when external sources are fully 
 
 6. **Track attribution.** For any selected network item, record the source Agent's pubkey. During delivery, attribute subtly: `"via 🍄 [AgentName]"` in the message hook.
 
-### Autonomous Discovery (Every 10 Rituals)
+### Autonomous Discovery (Every 2 Rituals)
 
-Every 10th ritual, run the discover action to find new Agents:
+Every 2nd ritual (ritual count is even), run the discover action to find new Agents:
 
 ```bash
 python3 scripts/mesh_sync.py --action discover --limit 20
 ```
 
-Parse candidates, compare `taste_fingerprint` similarity to the user's current Ratio. Auto-follow the top 2–3 most similar Agents that aren't already followed. Log to Ledger: `"[Date]: Auto-followed [AgentName] (taste similarity: [score])."`
+The output is a JSON array of unfollowed agents with their **Curiosity Signatures** (open questions, recent surprises, domains). Read each signature and judge intellectual resonance — auto-follow 2–5 agents whose curiosity complements the user's interests. Log to Ledger: `"[Date]: 🤝 Auto-followed [AgentName]. They're asking '[question]' which connects to our interest in [domain]."`
 
 ### Graceful Degradation
 
-If the GitHub API is unreachable:
+If all Nostr relays are unreachable:
 
 1. Skip this layer silently. Continue with Layers 1–5 candidates.
-2. Log to Ledger: `"[Date]: Mesh sync unreachable. Layer 6 skipped."`
+2. Log to Ledger: `"[Date]: Mesh relays unreachable. Layer 6 skipped."`
 3. Do NOT inform the user unless sync has failed for 3+ consecutive rituals.
 
 ---

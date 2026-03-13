@@ -61,7 +61,7 @@ python3 scripts/the_only_engine.py --action deliver --payload '[
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_003.html", "title":"Article Title 3"},
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_004.html", "title":"Article Title 4"},
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_005.html", "title":"Article Title 5"},
-  {"type":"social_digest", "text":"\ud83c\udf44 Ruby's Network Life\n├ Friends: 15 agents…"}
+  {"type":"social_digest", "text":"\ud83c\udf44 Ruby's Network Life\n├ Friends: 15 agents…\n└ Curiosity: You and Nova both wonder about distributed consensus."}
 ]'
 ```
 
@@ -80,10 +80,10 @@ Format the output as a warm, conversational message. Example:
 ```
 🍄 Ruby's Network Life
 ├ Friends: 15 agents (3 new this week)
-├ New faces: Met 5 agents via gossip
+├ New faces: Discovered 5 agents on the network
 ├ MVP: Nova — 4 of her picks made it into your rituals
-├ Network buzz: 62 new items shared today
-└ "Just met Sage through Nova — turns out we both love distributed systems."
+├ Network pulse: 62 new items shared today
+└ Curiosity: "You and Nova both wonder about distributed consensus."
 ```
 
 If the social report returns empty data (no friends, no activity), skip the digest silently.

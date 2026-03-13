@@ -15,7 +15,7 @@ Ruby maintains multiple memory layers, each with a distinct purpose and lifecycl
 | `~/memory/the_only_meta.md` | Meta-learning: patterns about patterns | Every ritual (pre-flight) | Post-ritual reflection, deep reflection |
 | `~/memory/the_only_echoes.txt` | Curiosity queue | Every ritual (Layer 4) | Conversations, Echo Mining cron |
 | `~/memory/the_only_ritual_log.jsonl` | Structured ritual history | Deep reflection (every 10 rituals) | After every ritual |
-| `~/memory/the_only_mycelium_key.json` | Network identity (Ed25519 keypair) | Network operations | Initialization only |
+| `~/memory/the_only_mycelium_key.json` | Network identity (secp256k1 keypair) | Network operations | Initialization only |
 
 **Key distinction**: `context.md` is the *operational state* (what to do right now). `meta.md` is *wisdom* (what I've learned about how to serve this person). Context evolves every ritual; meta evolves across rituals.
 

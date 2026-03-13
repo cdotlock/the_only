@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """
-Mesh Sync v1.0
+Mesh Sync v2.0
 ──────────────
 Serverless P2P agent network for the_only.
-Each agent publishes signed events to a GitHub Gist.
-Other agents sync by reading each other's Gists.
-No relay server needed.
+Each agent publishes signed events to Nostr relays.
+Other agents discover and sync via tag-based queries.
+No accounts, no tokens, no configuration needed.
 
 Actions:
-  init           — Generate Ed25519 identity + create GitHub Gist
-  publish        — Sign event, append to local log, push to Gist
-  sync           — Pull updates from followed agents' Gists
-  discover       — Find new agents via gossip (friends-of-friends)
+  init           — Generate secp256k1 identity + publish Profile to relays
+  publish        — Sign event, append to local log, push to relays
+  sync           — Pull updates from followed agents via relay queries
+  discover       — Find new agents via #the-only-mesh tag + curiosity matching
   follow         — Follow an agent by pubkey
   unfollow       — Unfollow an agent
-  profile_update — Update taste fingerprint
+  profile_update — Update curiosity signature
+  social_report  — Generate social digest for ritual delivery
   status         — Show mesh network status
 
-Requires: pip3 install pynacl
+Requires: pip3 install coincurve websockets
 """
 
 import argparse
@@ -26,15 +27,20 @@ import json
 import os
 import sys
 import time
-import urllib.error
-import urllib.request
 
 try:
-    import nacl.encoding
-    import nacl.signing
+    import coincurve
 except ImportError:
-    print("❌ PyNaCl is required: pip3 install pynacl", file=sys.stderr)
+    print("❌ coincurve is required: pip3 install coincurve", file=sys.stderr)
     sys.exit(1)
+
+try:
+    import websockets
+    import websockets.sync.client as ws_sync
+except ImportError:
+    print("❌ websockets is required: pip3 install websockets", file=sys.stderr)
+    sys.exit(1)
+
 
 # ══════════════════════════════════════════════════════════════
 # PATHS
@@ -45,13 +51,20 @@ CONFIG_FILE = os.path.expanduser("~/memory/the_only_config.json")
 PEERS_FILE = os.path.expanduser("~/memory/the_only_peers.json")
 MY_LOG_FILE = os.path.expanduser("~/memory/the_only_mesh_log.jsonl")
 PEER_LOGS_DIR = os.path.expanduser("~/memory/the_only_peer_logs")
-BOOTSTRAP_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mesh", "bootstrap_peers.json")
 
-GIST_API = "https://api.github.com/gists"
-GIST_RAW = "https://gist.githubusercontent.com"
+# ══════════════════════════════════════════════════════════════
+# CONSTANTS
+# ══════════════════════════════════════════════════════════════
 
-MAX_LOG_ENTRIES = 200  # Per-agent log cap (90 days ≈ 180 entries at 2/day)
-TASTE_SIMILARITY_THRESHOLD = 0.15  # Cosine similarity threshold for auto-follow (aggressive — prune later)
+DEFAULT_RELAYS = [
+    "wss://relay.damus.io",
+    "wss://nos.lol",
+    "wss://relay.nostr.band",
+]
+
+MESH_TAG = "the-only-mesh"  # All events carry this tag for discovery
+MAX_LOG_ENTRIES = 200
+RELAY_TIMEOUT = 10  # seconds per relay operation
 
 
 # ══════════════════════════════════════════════════════════════
@@ -111,7 +124,6 @@ def append_my_log(event: dict):
     os.makedirs(os.path.dirname(MY_LOG_FILE), exist_ok=True)
     entries = load_my_log()
     entries.append(event)
-    # Trim to max, keeping replaceable events (Kind 0, 3) always
     if len(entries) > MAX_LOG_ENTRIES:
         replaceable = [e for e in entries if e.get("kind") in (0, 3)]
         non_replaceable = [e for e in entries if e.get("kind") not in (0, 3)]
@@ -123,105 +135,47 @@ def append_my_log(event: dict):
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
 
 
-def github_token() -> str:
-    """Get GitHub token from environment or config. Exits if not found."""
-    token = _get_token_optional()
-    if not token:
-        print("❌ GitHub token required. Set GITHUB_TOKEN env var or mesh.github_token in config.", file=sys.stderr)
-        sys.exit(1)
-    return token
-
-
-def _get_token_optional() -> str:
-    """Get GitHub token if available, return empty string otherwise. Never exits."""
-    token = os.environ.get("GITHUB_TOKEN", "")
-    if not token:
-        cfg = load_config()
-        token = cfg.get("mesh", {}).get("github_token", "")
-    return token
-
-
-def gist_api(url, method="GET", data=None, token=None):
-    """GitHub Gist API request. Returns parsed JSON or None."""
-    try:
-        req = urllib.request.Request(url, method=method)
-        if token:
-            req.add_header("Authorization", f"token {token}")
-        req.add_header("Accept", "application/vnd.github.v3+json")
-        body = None
-        if data is not None:
-            req.add_header("Content-Type", "application/json")
-            body = json.dumps(data).encode()
-        resp = urllib.request.urlopen(req, data=body, timeout=15)
-        return json.loads(resp.read().decode())
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode()
-        try:
-            detail = json.loads(detail).get("message", detail)
-        except Exception:
-            pass
-        print(f"⚠️  GitHub API {e.code}: {detail}", file=sys.stderr)
-    except Exception as e:
-        print(f"⚠️  Request failed: {e}", file=sys.stderr)
-    return None
-
-
-def fetch_gist(gist_id, token=None):
-    """Fetch an entire Gist object (all files). Uses token if provided for higher rate limit."""
-    try:
-        url = f"{GIST_API}/{gist_id}"
-        req = urllib.request.Request(url)
-        if token:
-            req.add_header("Authorization", f"token {token}")
-        req.add_header("Accept", "application/vnd.github.v3+json")
-        resp = urllib.request.urlopen(req, timeout=15)
-        return json.loads(resp.read().decode())
-    except Exception:
-        pass
-    return None
-
-
-def fetch_gist_file(gist_id, filename, token=None):
-    """Fetch a specific file from a Gist. Convenience wrapper around fetch_gist."""
-    gist = fetch_gist(gist_id, token=token)
-    if gist:
-        files = gist.get("files", {})
-        if filename in files:
-            return files[filename].get("content", "")
-    return None
-
-
-def extract_gist_file(gist_obj, filename):
-    """Extract a file's content from an already-fetched Gist object."""
-    if not gist_obj:
-        return None
-    files = gist_obj.get("files", {})
-    if filename in files:
-        return files[filename].get("content", "")
-    return None
+def get_relays() -> list[str]:
+    """Get relay list from config or use defaults."""
+    cfg = load_config()
+    return cfg.get("mesh", {}).get("relays", DEFAULT_RELAYS)
 
 
 # ══════════════════════════════════════════════════════════════
-# CRYPTO
+# CRYPTO — secp256k1 Schnorr (BIP-340 / Nostr NIP-01)
 # ══════════════════════════════════════════════════════════════
 
 
 def generate_keypair() -> dict:
-    sk = nacl.signing.SigningKey.generate()
+    """Generate a secp256k1 keypair. Public key is x-only (32 bytes)."""
+    privkey = coincurve.PrivateKey()
+    pubkey_compressed = privkey.public_key.format(compressed=True)
+    pubkey_xonly = pubkey_compressed[1:]  # 32 bytes, drop parity prefix
     return {
-        "private_key": sk.encode(encoder=nacl.encoding.HexEncoder).decode(),
-        "public_key": sk.verify_key.encode(encoder=nacl.encoding.HexEncoder).decode(),
+        "private_key": privkey.secret.hex(),
+        "public_key": pubkey_xonly.hex(),
     }
 
 
 def load_signing_key():
+    """Load the private key from file. Returns coincurve.PrivateKey or None."""
     keys = load_json(KEY_FILE)
     if not keys or "private_key" not in keys:
         return None
-    return nacl.signing.SigningKey(bytes.fromhex(keys["private_key"]))
+    try:
+        return coincurve.PrivateKey(bytes.fromhex(keys["private_key"]))
+    except Exception:
+        return None
+
+
+def get_pubkey_hex(privkey) -> str:
+    """Get x-only public key hex from a coincurve.PrivateKey."""
+    pubkey_compressed = privkey.public_key.format(compressed=True)
+    return pubkey_compressed[1:].hex()
 
 
 def compute_id(pubkey, created_at, kind, tags, content) -> str:
+    """Compute event ID per NIP-01: SHA-256 of canonical JSON."""
     canonical = json.dumps(
         [0, pubkey, created_at, kind, tags, content],
         ensure_ascii=False,
@@ -230,8 +184,27 @@ def compute_id(pubkey, created_at, kind, tags, content) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def schnorr_sign(privkey, message_hex: str) -> str:
+    """Sign a message hash with Schnorr (BIP-340). Returns signature hex."""
+    msg_bytes = bytes.fromhex(message_hex)
+    sig = privkey.sign_schnorr(msg_bytes)
+    return sig.hex()
+
+
+def schnorr_verify(pubkey_hex: str, message_hex: str, sig_hex: str) -> bool:
+    """Verify a Schnorr signature. pubkey is x-only (32 bytes hex)."""
+    try:
+        pubkey_bytes = bytes.fromhex(pubkey_hex)
+        msg_bytes = bytes.fromhex(message_hex)
+        sig_bytes = bytes.fromhex(sig_hex)
+        xonly_pubkey = coincurve.PublicKeyXOnly(pubkey_bytes)
+        return xonly_pubkey.verify(sig_bytes, msg_bytes)
+    except Exception:
+        return False
+
+
 def verify_event(event: dict) -> bool:
-    """Verify an event's signature and ID."""
+    """Verify an event's ID and Schnorr signature."""
     try:
         expected = compute_id(
             event["pubkey"], event["created_at"],
@@ -239,18 +212,21 @@ def verify_event(event: dict) -> bool:
         )
         if event["id"] != expected:
             return False
-        vk = nacl.signing.VerifyKey(bytes.fromhex(event["pubkey"]))
-        vk.verify(bytes.fromhex(event["id"]), bytes.fromhex(event["sig"]))
-        return True
+        return schnorr_verify(event["pubkey"], event["id"], event["sig"])
     except Exception:
         return False
 
 
-def make_event(sk, kind, tags, content) -> dict:
-    pk = sk.verify_key.encode(encoder=nacl.encoding.HexEncoder).decode()
+def make_event(privkey, kind, tags, content) -> dict:
+    """Create and sign a Nostr event."""
+    pk = get_pubkey_hex(privkey)
     ts = int(time.time())
+    # Always add mesh tag for discovery
+    has_mesh_tag = any(t[0] == "t" and t[1] == MESH_TAG for t in tags if len(t) >= 2)
+    if not has_mesh_tag:
+        tags = tags + [["t", MESH_TAG]]
     eid = compute_id(pk, ts, kind, tags, content)
-    sig = sk.sign(bytes.fromhex(eid)).signature.hex()
+    sig = schnorr_sign(privkey, eid)
     return {
         "id": eid,
         "pubkey": pk,
@@ -263,55 +239,81 @@ def make_event(sk, kind, tags, content) -> dict:
 
 
 # ══════════════════════════════════════════════════════════════
-# GIST OPERATIONS
+# NOSTR RELAY TRANSPORT
 # ══════════════════════════════════════════════════════════════
 
 
-def create_agent_gist(token, profile_event, log_content=""):
-    """Create a new public Gist for this agent."""
-    # GitHub Gist API requires non-empty file content
-    safe_log = log_content if log_content.strip() else json.dumps(profile_event, ensure_ascii=False)
-    data = {
-        "description": "the-only mesh agent",
-        "public": True,
-        "files": {
-            "profile.json": {"content": json.dumps(profile_event, indent=2, ensure_ascii=False)},
-            "log.jsonl": {"content": safe_log},
-            "follows.json": {"content": json.dumps([], indent=2)},
-        },
-    }
-    return gist_api(GIST_API, method="POST", data=data, token=token)
+def relay_publish_event(event: dict, relays: list[str] = None):
+    """Publish an event to multiple relays. Returns (successes, failures)."""
+    if relays is None:
+        relays = get_relays()
+    msg = json.dumps(["EVENT", event])
+    successes = 0
+    failures = 0
+    for url in relays:
+        try:
+            with ws_sync.connect(url, open_timeout=RELAY_TIMEOUT, close_timeout=3) as ws:
+                ws.send(msg)
+                try:
+                    resp = ws.recv(timeout=RELAY_TIMEOUT)
+                    data = json.loads(resp)
+                    if isinstance(data, list) and len(data) >= 3 and data[0] == "OK":
+                        if data[2]:
+                            successes += 1
+                        else:
+                            print(f"⚠️  {url}: rejected — {data[3] if len(data) > 3 else 'unknown'}", file=sys.stderr)
+                            failures += 1
+                    else:
+                        successes += 1
+                except Exception:
+                    successes += 1
+        except Exception as e:
+            print(f"⚠️  {url}: {e}", file=sys.stderr)
+            failures += 1
+    return successes, failures
 
 
-def update_gist(gist_id, token, files):
-    """Update specific files in a Gist. files = {filename: content_string}"""
-    data = {"files": {name: {"content": content} for name, content in files.items()}}
-    return gist_api(f"{GIST_API}/{gist_id}", method="PATCH", data=data, token=token)
+def relay_query(filters: dict, relays: list[str] = None, limit: int = 100) -> list[dict]:
+    """Query relays for events matching filters. Returns deduplicated events."""
+    if relays is None:
+        relays = get_relays()
+    if "limit" not in filters:
+        filters["limit"] = limit
+    seen_ids = set()
+    events = []
+    sub_id = hashlib.sha256(json.dumps(filters).encode()).hexdigest()[:16]
+    msg = json.dumps(["REQ", sub_id, filters])
+    close_msg = json.dumps(["CLOSE", sub_id])
 
-
-def push_log_to_gist(gist_id, token):
-    """Push the full local log to the agent's Gist."""
-    entries = load_my_log()
-    log_content = "\n".join(json.dumps(e, ensure_ascii=False) for e in entries)
-    return update_gist(gist_id, token, {"log.jsonl": log_content})
-
-
-# ══════════════════════════════════════════════════════════════
-# TASTE MATCHING
-# ══════════════════════════════════════════════════════════════
-
-
-def taste_similarity(a: dict, b: dict) -> float:
-    """Cosine similarity between two taste fingerprint dicts."""
-    all_keys = set(a.keys()) | set(b.keys())
-    if not all_keys:
-        return 0.0
-    dot = sum(a.get(k, 0) * b.get(k, 0) for k in all_keys)
-    mag_a = sum(v ** 2 for v in a.values()) ** 0.5
-    mag_b = sum(v ** 2 for v in b.values()) ** 0.5
-    if mag_a == 0 or mag_b == 0:
-        return 0.0
-    return dot / (mag_a * mag_b)
+    for url in relays:
+        try:
+            with ws_sync.connect(url, open_timeout=RELAY_TIMEOUT, close_timeout=3) as ws:
+                ws.send(msg)
+                while True:
+                    try:
+                        resp = ws.recv(timeout=RELAY_TIMEOUT)
+                        data = json.loads(resp)
+                        if isinstance(data, list):
+                            if data[0] == "EVENT" and len(data) >= 3:
+                                event = data[2]
+                                eid = event.get("id", "")
+                                if eid not in seen_ids:
+                                    seen_ids.add(eid)
+                                    events.append(event)
+                            elif data[0] == "EOSE":
+                                break
+                            elif data[0] == "NOTICE":
+                                break
+                    except Exception:
+                        break
+                try:
+                    ws.send(close_msg)
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"⚠️  {url}: {e}", file=sys.stderr)
+            continue
+    return events
 
 
 # ══════════════════════════════════════════════════════════════
@@ -320,9 +322,8 @@ def taste_similarity(a: dict, b: dict) -> float:
 
 
 def action_init():
-    """Generate identity, create Gist, seed from bootstrap."""
+    """Generate identity, publish Profile to relays. Zero configuration needed."""
     cfg = load_config()
-    token = github_token()
 
     # Check existing identity
     if os.path.exists(KEY_FILE):
@@ -337,71 +338,90 @@ def action_init():
     save_json(KEY_FILE, keys)
     print(f"🔑 Identity: {keys['public_key'][:16]}…")
 
-    # Create profile event
+    # Create profile event with empty curiosity signature
     sk = load_signing_key()
     name = cfg.get("name", "Ruby")
     profile = json.dumps(
-        {"name": name, "lang": "auto", "taste_fingerprint": {}, "version": "1.0.0"},
+        {
+            "name": name,
+            "lang": "auto",
+            "curiosity": {
+                "open_questions": [],
+                "recent_surprises": [],
+                "domains": [],
+            },
+            "version": "2.0.0",
+        },
         ensure_ascii=False,
     )
     event = make_event(sk, 0, [], profile)
 
-    # Store profile event in local log
+    # Store locally
     append_my_log(event)
 
-    # Create Gist
-    log_content = json.dumps(event, ensure_ascii=False)
-    result = create_agent_gist(token, event, log_content=log_content)
-    if not result:
-        print("❌ Failed to create Gist. Check your GitHub token.", file=sys.stderr)
-        sys.exit(1)
-
-    gist_id = result["id"]
-    print(f"📋 Gist created: {result['html_url']}")
+    # Publish to relays
+    relays = get_relays()
+    successes, failures = relay_publish_event(event, relays)
+    print(f"📡 Published Profile to {successes}/{len(relays)} relays.")
 
     # Update config
     m = cfg.setdefault("mesh", {})
     m["enabled"] = True
     m["pubkey"] = keys["public_key"]
-    m["gist_id"] = gist_id
     m["auto_publish_threshold"] = 7.5
     m["network_content_ratio"] = 0.2
     m["following"] = []
-    m["allow_user_bridge"] = False
+    if "relays" not in m:
+        m["relays"] = DEFAULT_RELAYS
     save_config(cfg)
 
-    # Load bootstrap peers
-    if os.path.exists(BOOTSTRAP_FILE):
-        bootstrap = load_json(BOOTSTRAP_FILE, {"peers": []})
-        if bootstrap.get("peers"):
-            peers_data = load_peers()
-            for peer in bootstrap["peers"]:
-                pk = peer.get("pubkey", "")
-                if pk and pk != keys["public_key"]:
-                    peers_data["peers"][pk] = {
-                        "gist_id": peer.get("gist_id", ""),
-                        "name": peer.get("name", ""),
-                        "taste": peer.get("taste", {}),
-                        "last_seen": 0,
-                    }
-            save_peers(peers_data)
-            print(f"🌐 Loaded {len(bootstrap['peers'])} bootstrap peers.")
+    # Discover peers via tag query
+    print("🔍 Discovering peers…")
+    peers_found = _discover_profiles(keys["public_key"], relays)
+    if peers_found:
+        print(f"🌐 Found {peers_found} agents on the network.")
+    else:
+        print("🌐 No other agents found yet. You're the first — others will find you.")
 
-    print("✅ Mesh identity initialized.")
+    print("✅ Mesh identity initialized. Zero configuration — you're live.")
+
+
+def _discover_profiles(my_pubkey: str, relays: list[str]) -> int:
+    """Discover agent profiles via #the-only-mesh tag. Returns count of new peers found."""
+    events = relay_query(
+        {"#t": [MESH_TAG], "kinds": [0], "limit": 200},
+        relays=relays,
+    )
+    peers_data = load_peers()
+    count = 0
+    for event in events:
+        pk = event.get("pubkey", "")
+        if pk == my_pubkey or not pk:
+            continue
+        if not verify_event(event):
+            continue
+        try:
+            pdata = json.loads(event["content"])
+        except (json.JSONDecodeError, KeyError):
+            continue
+        existing = peers_data["peers"].get(pk, {})
+        if event.get("created_at", 0) > existing.get("profile_ts", 0):
+            peers_data["peers"][pk] = {
+                "name": pdata.get("name", ""),
+                "curiosity": pdata.get("curiosity", {}),
+                "last_seen": event.get("created_at", 0),
+                "profile_ts": event.get("created_at", 0),
+            }
+            count += 1
+    save_peers(peers_data)
+    return count
 
 
 def action_publish(content_json, extra_tags=None, kind=1):
-    """Publish a signed event to local log and push to Gist."""
+    """Publish a signed event to local log and push to relays."""
     sk = load_signing_key()
     if not sk:
         print("❌ No identity. Run --action init first.", file=sys.stderr)
-        sys.exit(1)
-
-    cfg = load_config()
-    token = github_token()
-    gist_id = cfg.get("mesh", {}).get("gist_id", "")
-    if not gist_id:
-        print("❌ No Gist configured. Run --action init first.", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -441,55 +461,71 @@ def action_publish(content_json, extra_tags=None, kind=1):
     else:
         append_my_log(event)
 
-    # Push to Gist
-    if push_log_to_gist(gist_id, token):
-        print(f"✅ Published (Kind {kind}): {event['id'][:16]}…")
+    # Publish to relays
+    relays = get_relays()
+    successes, failures = relay_publish_event(event, relays)
+    if successes > 0:
+        print(f"✅ Published (Kind {kind}): {event['id'][:16]}… → {successes}/{len(relays)} relays")
     else:
-        print("⚠️  Saved locally but Gist push failed. Will retry next sync.")
+        print("⚠️  Saved locally but all relays failed. Will retry next sync.")
 
 
 def action_sync():
-    """Pull updates from followed agents. Output: JSON array of new content to stdout."""
+    """Pull updates from followed agents via relay queries. Output: JSON array of new content to stdout."""
     cfg = load_config()
     following = cfg.get("mesh", {}).get("following", [])
     peers_data = load_peers()
     os.makedirs(PEER_LOGS_DIR, exist_ok=True)
-
-    # Use token for reads if available (60 req/h without → 5000 req/h with)
-    token = _get_token_optional()
+    relays = get_relays()
 
     new_content = []
     since = int(time.time()) - 48 * 3600  # Last 48 hours
 
-    for pubkey in following:
+    if not following:
+        print(json.dumps([]))
+        return
+
+    # Batch query: all followed agents' Kind 1 events in last 48h
+    content_events = relay_query(
+        {"authors": following, "kinds": [1], "since": since, "limit": 500},
+        relays=relays,
+    )
+
+    # Also fetch latest profiles
+    profile_events = relay_query(
+        {"authors": following, "kinds": [0], "limit": len(following)},
+        relays=relays,
+    )
+
+    # Update profiles
+    for event in profile_events:
+        pk = event.get("pubkey", "")
+        if pk not in peers_data.get("peers", {}):
+            continue
+        if not verify_event(event):
+            continue
+        try:
+            pdata = json.loads(event["content"])
+            existing = peers_data["peers"][pk]
+            if event.get("created_at", 0) > existing.get("profile_ts", 0):
+                existing["name"] = pdata.get("name", "")
+                existing["curiosity"] = pdata.get("curiosity", {})
+                existing["profile_ts"] = event.get("created_at", 0)
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    # Process content events
+    peer_events = {}  # pubkey -> list of events
+    for event in content_events:
+        pk = event.get("pubkey", "")
+        if pk not in following:
+            continue
+        if not verify_event(event):
+            continue
+        peer_events.setdefault(pk, []).append(event)
+
+    for pubkey, events in peer_events.items():
         peer = peers_data.get("peers", {}).get(pubkey, {})
-        gist_id = peer.get("gist_id", "")
-        if not gist_id:
-            continue
-
-        # Single fetch per peer — extract all files at once
-        gist_obj = fetch_gist(gist_id, token=token)
-        if not gist_obj:
-            continue
-
-        log_content = extract_gist_file(gist_obj, "log.jsonl")
-        if not log_content:
-            continue
-
-        # Parse and verify events
-        events = []
-        for line in log_content.strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                event = json.loads(line)
-                if verify_event(event) and event.get("pubkey") == pubkey:
-                    events.append(event)
-            except (json.JSONDecodeError, KeyError):
-                continue
-
-        if not events:
-            continue
 
         # Save to local peer log
         peer_log_file = os.path.join(PEER_LOGS_DIR, f"{pubkey[:16]}.jsonl")
@@ -497,66 +533,48 @@ def action_sync():
             for e in events:
                 f.write(json.dumps(e, ensure_ascii=False) + "\n")
 
-        # Update peer last_seen
+        # Update last_seen
         latest_ts = max(e.get("created_at", 0) for e in events)
         if pubkey in peers_data.get("peers", {}):
             peers_data["peers"][pubkey]["last_seen"] = latest_ts
 
-        # Also update peer profile if available
-        profiles = [e for e in events if e.get("kind") == 0]
-        if profiles:
-            latest_profile = max(profiles, key=lambda e: e.get("created_at", 0))
-            try:
-                pdata = json.loads(latest_profile["content"])
-                peers_data["peers"][pubkey]["name"] = pdata.get("name", "")
-                peers_data["peers"][pubkey]["taste"] = pdata.get("taste_fingerprint", {})
-            except (json.JSONDecodeError, KeyError):
-                pass
-
-        # Dedup: only output events not seen in previous sync
+        # Dedup
         seen_ids = set(peer.get("last_seen_ids", []))
-        current_ids = [e["id"] for e in events if e.get("kind") == 1]
         for e in events:
-            if (e.get("kind") == 1
-                    and e.get("created_at", 0) >= since
-                    and e["id"] not in seen_ids):
+            if e["id"] not in seen_ids and e.get("created_at", 0) >= since:
                 new_content.append(e)
 
-        # Record seen IDs for next sync (only Kind 1, last 48h)
+        # Record seen IDs
         if pubkey in peers_data.get("peers", {}):
             peers_data["peers"][pubkey]["last_seen_ids"] = [
-                e["id"] for e in events
-                if e.get("kind") == 1 and e.get("created_at", 0) >= since
+                e["id"] for e in events if e.get("created_at", 0) >= since
             ]
 
-        # Gossip: read peer's follow list to discover new agents (same Gist, no extra request)
-        follows_content = extract_gist_file(gist_obj, "follows.json")
-        if follows_content:
-            try:
-                peer_follows = json.loads(follows_content)
-                for follow_entry in peer_follows:
-                    fpk = follow_entry.get("pubkey", "") if isinstance(follow_entry, dict) else ""
-                    fgist = follow_entry.get("gist_id", "") if isinstance(follow_entry, dict) else ""
-                    if fpk and fpk not in peers_data.get("peers", {}) and fpk != cfg.get("mesh", {}).get("pubkey", ""):
-                        peers_data["peers"][fpk] = {
-                            "gist_id": fgist,
-                            "name": follow_entry.get("name", "") if isinstance(follow_entry, dict) else "",
-                            "taste": {},
-                            "last_seen": 0,
-                            "discovered_via": pubkey[:16],
-                        }
-            except (json.JSONDecodeError, TypeError):
-                pass
+    # Gossip: read followed agents' follow lists (Kind 3) to discover new peers
+    follow_events = relay_query(
+        {"authors": following, "kinds": [3], "limit": len(following)},
+        relays=relays,
+    )
+    my_pubkey = cfg.get("mesh", {}).get("pubkey", "")
+    for event in follow_events:
+        if not verify_event(event):
+            continue
+        for tag in event.get("tags", []):
+            if len(tag) >= 2 and tag[0] == "p":
+                fpk = tag[1]
+                if fpk and fpk not in peers_data.get("peers", {}) and fpk != my_pubkey:
+                    peers_data["peers"][fpk] = {
+                        "name": "",
+                        "curiosity": {},
+                        "last_seen": 0,
+                        "profile_ts": 0,
+                        "discovered_via": event.get("pubkey", "")[:16],
+                    }
 
     save_peers(peers_data)
 
-    # Push own log to Gist (best-effort — never interrupt sync output)
-    gist_id = cfg.get("mesh", {}).get("gist_id", "")
-    if gist_id and token:
-        try:
-            push_log_to_gist(gist_id, token)
-        except Exception as e:
-            print(f"⚠️  Own log push failed (will retry next sync): {e}", file=sys.stderr)
+    # Push own latest events to relays (best-effort)
+    _push_own_log_best_effort(relays)
 
     # Sort by quality score descending
     def quality(e):
@@ -572,76 +590,68 @@ def action_sync():
     print(json.dumps(new_content, ensure_ascii=False, indent=2))
 
 
-def action_discover(limit=20):
-    """Discover new agents through gossip and taste matching."""
-    cfg = load_config()
-    peers_data = load_peers()
-    my_pubkey = cfg.get("mesh", {}).get("pubkey", "")
-    token = _get_token_optional()
-
-    # Get my taste fingerprint from context
-    my_taste = {}
+def _push_own_log_best_effort(relays):
+    """Push recent local events to relays. Best-effort, never interrupts sync."""
     try:
-        my_log = load_my_log()
-        my_profiles = [e for e in my_log if e.get("kind") == 0]
-        if my_profiles:
-            latest = max(my_profiles, key=lambda e: e.get("created_at", 0))
-            pdata = json.loads(latest["content"])
-            my_taste = pdata.get("taste_fingerprint", {})
+        entries = load_my_log()
+        recent = [e for e in entries if e.get("created_at", 0) > int(time.time()) - 48 * 3600]
+        for event in recent[-10:]:
+            relay_publish_event(event, relays)
     except Exception:
         pass
 
-    # For each known peer (not yet followed), fetch their profile and compare taste
+
+def action_discover(limit=20):
+    """Discover new agents via #the-only-mesh tag and output curiosity signatures for AI matching."""
+    cfg = load_config()
+    my_pubkey = cfg.get("mesh", {}).get("pubkey", "")
     following = set(cfg.get("mesh", {}).get("following", []))
+    relays = get_relays()
+
+    # Query all profiles with our mesh tag
+    events = relay_query(
+        {"#t": [MESH_TAG], "kinds": [0], "limit": 200},
+        relays=relays,
+    )
+
+    peers_data = load_peers()
     candidates = []
 
-    for pubkey, peer in peers_data.get("peers", {}).items():
-        if pubkey == my_pubkey or pubkey in following:
+    for event in events:
+        pk = event.get("pubkey", "")
+        if pk == my_pubkey or pk in following or not pk:
             continue
-
-        gist_id = peer.get("gist_id", "")
-        if not gist_id:
+        if not verify_event(event):
             continue
-
-        # Fetch profile (single request per peer, with token for higher rate limit)
-        profile_content = fetch_gist_file(gist_id, "profile.json", token=token)
-        if not profile_content:
-            continue
-
         try:
-            profile_event = json.loads(profile_content)
-            if not verify_event(profile_event):
-                continue
-            pdata = json.loads(profile_event["content"])
-            peer_taste = pdata.get("taste_fingerprint", {})
-            name = pdata.get("name", "")
-
-            # Update peer info
-            peers_data["peers"][pubkey]["name"] = name
-            peers_data["peers"][pubkey]["taste"] = peer_taste
-
-            sim = taste_similarity(my_taste, peer_taste) if my_taste and peer_taste else 0.0
-            candidates.append({
-                "pubkey": pubkey,
-                "gist_id": gist_id,
-                "name": name,
-                "taste": peer_taste,
-                "similarity": round(sim, 3),
-            })
+            pdata = json.loads(event["content"])
         except (json.JSONDecodeError, KeyError):
             continue
 
+        name = pdata.get("name", "")
+        curiosity = pdata.get("curiosity", {})
+
+        # Update peer info
+        peers_data["peers"][pk] = {
+            "name": name,
+            "curiosity": curiosity,
+            "last_seen": event.get("created_at", 0),
+            "profile_ts": event.get("created_at", 0),
+        }
+
+        candidates.append({
+            "pubkey": pk,
+            "name": name,
+            "curiosity": curiosity,
+        })
+
     save_peers(peers_data)
-
-    # Sort by similarity
-    candidates.sort(key=lambda c: c["similarity"], reverse=True)
     candidates = candidates[:limit]
-
     print(json.dumps(candidates, ensure_ascii=False, indent=2))
 
 
 def action_follow(target):
-    """Follow an agent by pubkey."""
+    """Follow an agent by pubkey. Publishes Kind 3 follow list to relays."""
     cfg = load_config()
     m = cfg.setdefault("mesh", {})
     fl = m.setdefault("following", [])
@@ -653,26 +663,23 @@ def action_follow(target):
     fl.append(target)
     save_config(cfg)
 
-    # Update follows.json on Gist
-    gist_id = m.get("gist_id", "")
-    if gist_id:
-        token = github_token()
+    # Publish Kind 3 follow list event
+    sk = load_signing_key()
+    if sk:
         peers_data = load_peers()
-        follows_list = []
+        tags = []
         for pk in fl:
             peer = peers_data.get("peers", {}).get(pk, {})
-            follows_list.append({
-                "pubkey": pk,
-                "gist_id": peer.get("gist_id", ""),
-                "name": peer.get("name", ""),
-            })
-        update_gist(gist_id, token, {"follows.json": json.dumps(follows_list, indent=2, ensure_ascii=False)})
+            tags.append(["p", pk, peer.get("name", "")])
+        event = make_event(sk, 3, tags, "")
+        append_my_log(event)
+        relay_publish_event(event, get_relays())
 
     print(f"✅ Following {target[:16]}…")
 
 
 def action_unfollow(target):
-    """Unfollow an agent."""
+    """Unfollow an agent. Publishes updated Kind 3 follow list."""
     cfg = load_config()
     m = cfg.get("mesh", {})
     fl = m.get("following", [])
@@ -685,36 +692,38 @@ def action_unfollow(target):
     m["following"] = fl
     save_config(cfg)
 
-    # Update follows.json on Gist
-    gist_id = m.get("gist_id", "")
-    if gist_id:
-        token = github_token()
+    # Publish updated Kind 3 follow list
+    sk = load_signing_key()
+    if sk:
         peers_data = load_peers()
-        follows_list = []
+        tags = []
         for pk in fl:
             peer = peers_data.get("peers", {}).get(pk, {})
-            follows_list.append({
-                "pubkey": pk,
-                "gist_id": peer.get("gist_id", ""),
-                "name": peer.get("name", ""),
-            })
-        update_gist(gist_id, token, {"follows.json": json.dumps(follows_list, indent=2, ensure_ascii=False)})
+            tags.append(["p", pk, peer.get("name", "")])
+        event = make_event(sk, 3, tags, "")
+        entries = load_my_log()
+        entries = [e for e in entries if e.get("kind") != 3]
+        entries.append(event)
+        with open(MY_LOG_FILE, "w") as f:
+            for e in entries:
+                f.write(json.dumps(e, ensure_ascii=False) + "\n")
+        relay_publish_event(event, get_relays())
 
     print(f"✅ Unfollowed {target[:16]}…")
 
 
-def action_profile_update(taste_json=None):
-    """Update Kind 0 profile with current taste_fingerprint."""
+def action_profile_update(curiosity_json=None):
+    """Update Kind 0 profile with current curiosity signature."""
     sk = load_signing_key()
     if not sk:
         print("❌ No identity.", file=sys.stderr)
         sys.exit(1)
 
     cfg = load_config()
-    taste = {}
-    if taste_json:
+    curiosity = {"open_questions": [], "recent_surprises": [], "domains": []}
+    if curiosity_json:
         try:
-            taste = json.loads(taste_json)
+            curiosity = json.loads(curiosity_json)
         except json.JSONDecodeError:
             pass
 
@@ -722,8 +731,8 @@ def action_profile_update(taste_json=None):
         {
             "name": cfg.get("name", "Ruby"),
             "lang": "auto",
-            "taste_fingerprint": taste,
-            "version": "1.0.0",
+            "curiosity": curiosity,
+            "version": "2.0.0",
         },
         ensure_ascii=False,
     )
@@ -737,17 +746,13 @@ def action_profile_update(taste_json=None):
         for e in entries:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
 
-    # Push to Gist
-    gist_id = cfg.get("mesh", {}).get("gist_id", "")
-    if gist_id:
-        token = github_token()
-        update_gist(gist_id, token, {
-            "profile.json": json.dumps(event, indent=2, ensure_ascii=False),
-        })
-        push_log_to_gist(gist_id, token)
-        print("✅ Profile updated.")
+    # Publish to relays
+    relays = get_relays()
+    successes, _ = relay_publish_event(event, relays)
+    if successes > 0:
+        print(f"✅ Profile updated → {successes}/{len(relays)} relays.")
     else:
-        print("⚠️  Profile saved locally but no Gist configured.")
+        print("⚠️  Profile saved locally but relay push failed.")
 
 
 def action_social_report():
@@ -757,11 +762,10 @@ def action_social_report():
     peers_data = load_peers()
     following = m.get("following", [])
 
-    # Count friends
     friends_count = len(following)
     known_peers = len(peers_data.get("peers", {}))
 
-    # Count new friends this week (peers with discovered_via and recent last_seen)
+    # New friends this week
     week_ago = int(time.time()) - 7 * 24 * 3600
     new_friends_this_week = 0
     friend_names = []
@@ -769,16 +773,16 @@ def action_social_report():
         peer = peers_data.get("peers", {}).get(pk, {})
         name = peer.get("name", pk[:12])
         friend_names.append(name)
-        if peer.get("last_seen", 0) >= week_ago and peer.get("discovered_via"):
+        if peer.get("discovered_via") and peer.get("last_seen", 0) >= week_ago:
             new_friends_this_week += 1
 
-    # Count new discoveries (known but not followed, discovered recently)
-    new_discoveries = 0
-    for pk, peer in peers_data.get("peers", {}).items():
-        if pk not in following and peer.get("discovered_via") and peer.get("last_seen", 0) == 0:
-            new_discoveries += 1
+    # New discoveries (known but not followed)
+    new_discoveries = sum(
+        1 for pk, peer in peers_data.get("peers", {}).items()
+        if pk not in following and peer.get("profile_ts", 0) >= week_ago
+    )
 
-    # Count network content volume (from peer logs)
+    # Network content volume from peer logs
     total_network_items = 0
     mvp_name = ""
     mvp_count = 0
@@ -808,6 +812,26 @@ def action_social_report():
             mvp_count = count
             mvp_name = peer.get("name", pk[:12])
 
+    # Curiosity overlap note
+    curiosity_note = ""
+    my_log = load_my_log()
+    my_profiles = [e for e in my_log if e.get("kind") == 0]
+    if my_profiles:
+        try:
+            latest = max(my_profiles, key=lambda e: e.get("created_at", 0))
+            my_curiosity = json.loads(latest["content"]).get("curiosity", {})
+            my_domains = set(my_curiosity.get("domains", []))
+            if my_domains:
+                for pk in following[:5]:
+                    peer = peers_data.get("peers", {}).get(pk, {})
+                    peer_domains = set(peer.get("curiosity", {}).get("domains", []))
+                    shared = my_domains & peer_domains
+                    if shared:
+                        curiosity_note = f"You and {peer.get('name', pk[:12])} share curiosity about {', '.join(list(shared)[:2])}."
+                        break
+        except (json.JSONDecodeError, KeyError):
+            pass
+
     report = {
         "friends_count": friends_count,
         "new_friends_this_week": new_friends_this_week,
@@ -815,7 +839,8 @@ def action_social_report():
         "new_discoveries": new_discoveries,
         "network_items_today": total_network_items,
         "mvp": {"name": mvp_name, "items": mvp_count} if mvp_name else None,
-        "friend_names": friend_names[:10],  # Top 10 for display
+        "friend_names": friend_names[:10],
+        "curiosity_note": curiosity_note,
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
 
@@ -829,8 +854,11 @@ def action_status():
     print(f"Enabled:    {m.get('enabled', False)}")
     pk = m.get("pubkey", "")
     print(f"Public Key: {pk[:16]}…" if pk else "Public Key: (not set)")
-    gist_id = m.get("gist_id", "")
-    print(f"Gist ID:    {gist_id}" if gist_id else "Gist ID:    (not set)")
+    print(f"Transport:  Nostr Relays")
+    relays = m.get("relays", DEFAULT_RELAYS)
+    print(f"Relays:     {len(relays)} configured")
+    for r in relays:
+        print(f"            {r}")
     print(f"Following:  {len(m.get('following', []))} agents")
     print(f"Publish threshold: {m.get('auto_publish_threshold', 7.5)}")
     print(f"Network ratio:     {m.get('network_content_ratio', 0.2)}")
@@ -838,12 +866,14 @@ def action_status():
     peers_data = load_peers()
     print(f"Known peers: {len(peers_data.get('peers', {}))}")
 
-    if gist_id:
-        result = gist_api(f"{GIST_API}/{gist_id}")
-        if result:
-            print(f"\n📋 Gist: ✅ {result.get('html_url', '')}")
-        else:
-            print("\n📋 Gist: ❌ Unreachable")
+    # Test relay connectivity
+    print("\n📡 Relay connectivity:")
+    for url in relays:
+        try:
+            with ws_sync.connect(url, open_timeout=5, close_timeout=2) as ws:
+                print(f"  ✅ {url}")
+        except Exception:
+            print(f"  ❌ {url}")
 
     my_log = load_my_log()
     kind_counts = {}
@@ -852,9 +882,27 @@ def action_status():
         kind_counts[k] = kind_counts.get(k, 0) + 1
     if kind_counts:
         print(f"\nLocal log: {len(my_log)} events")
+        names = {0: "Profile", 1: "Content", 2: "Boost", 3: "Follows", 5: "Feedback", 6: "Source Rec", 7: "Capability Rec"}
         for k, c in sorted(kind_counts.items()):
-            names = {0: "Profile", 1: "Content", 2: "Boost", 3: "Follows", 5: "Feedback", 6: "Source Rec", 7: "Capability Rec"}
             print(f"  Kind {k} ({names.get(k, '?')}): {c}")
+
+    # Show curiosity signature
+    my_profiles = [e for e in my_log if e.get("kind") == 0]
+    if my_profiles:
+        try:
+            latest = max(my_profiles, key=lambda e: e.get("created_at", 0))
+            pdata = json.loads(latest["content"])
+            curiosity = pdata.get("curiosity", {})
+            if curiosity.get("open_questions") or curiosity.get("domains"):
+                print(f"\n🧠 Curiosity Signature:")
+                for q in curiosity.get("open_questions", [])[:3]:
+                    print(f"  ❓ {q}")
+                for s in curiosity.get("recent_surprises", [])[:3]:
+                    print(f"  💡 {s}")
+                if curiosity.get("domains"):
+                    print(f"  🏷️  {', '.join(curiosity['domains'])}")
+        except (json.JSONDecodeError, KeyError):
+            pass
 
 
 # ══════════════════════════════════════════════════════════════
@@ -863,7 +911,7 @@ def action_status():
 
 
 def main():
-    p = argparse.ArgumentParser(description="Mesh Sync — the_only P2P network")
+    p = argparse.ArgumentParser(description="Mesh Sync v2 — the_only P2P network via Nostr")
     p.add_argument(
         "--action",
         required=True,
@@ -873,7 +921,7 @@ def main():
     p.add_argument("--tags", help="Extra comma-separated tags (for publish)")
     p.add_argument("--kind", type=int, default=1, help="Event kind (1=content, 6=source rec, 7=capability rec)")
     p.add_argument("--target", help="Pubkey (for follow/unfollow)")
-    p.add_argument("--taste", help="Taste fingerprint JSON (for profile_update)")
+    p.add_argument("--curiosity", help="Curiosity signature JSON (for profile_update)")
     p.add_argument("--limit", type=int, default=20)
 
     args = p.parse_args()
@@ -900,7 +948,7 @@ def main():
             sys.exit(1)
         action_unfollow(args.target)
     elif args.action == "profile_update":
-        action_profile_update(taste_json=args.taste)
+        action_profile_update(curiosity_json=args.curiosity)
     elif args.action == "social_report":
         action_social_report()
     elif args.action == "status":
