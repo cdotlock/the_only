@@ -130,11 +130,11 @@ If ClawhHub has no suitable skill, or installation failed:
 
 ### If user wants to skip
 
-> ⚠️ **This is a Tier 1 capability.** Do NOT accept a casual skip. Respond with:
+> ⛔ **This is a Tier 1 capability and skipping is strongly discouraged.** Respond with:
 >
-> "Without search, I can only scrape a handful of fixed websites. The diversity and freshness of your content will drop significantly. This is one of the two most important capabilities. Are you sure?"
+> "Web search is how I find anything fresh or personalized — without it I’m limited to scraping a handful of fixed websites. The diversity and quality of your rituals will drop dramatically. This literally takes 2 minutes: go to tavily.com, sign up (free tier: 1,000 searches/month), paste the API key. Can we just do it now?"
 
-- If user **insists**: add `"web_search"` to `pending_setup`. Remind at end of onboarding and on first cron.
+- If user **insists on skipping despite the above**: add `"web_search"` to `pending_setup`. At the **start of every subsequent ritual**, before any other action, remind the user once: ⚠️ "Web search isn’t configured. Today’s ritual will have reduced quality. Say ‘set up search’ to fix it in 2 minutes."
 - Record `capabilities.search_skill: null` so future rituals know to re-attempt installation.
 
 ---
@@ -260,23 +260,7 @@ Then try to read `{public_base_url}/__openclaw__/canvas/test_tunnel.html`. If it
 
 ---
 
-## Step 5: Infographic Capability (NanoBanana Pro) `[OPTIONAL]`
-
-> "One of my two delivery forms is a visual knowledge map — a hand-drawn style infographic that condenses complexity into a single glance. Let me check if I have that ability."
-
-**5a. Check if `nano-banana-pro` skill is installed** in OpenClaw.
-
-**5b. If found:** ✅ "Visual knowledge maps are ready."
-
-**5c. If not found:**
-
-> "NanoBanana Pro isn't installed yet. Without it, I'll convert all items to interactive webpages — still beautiful, but you'll miss the visual dimension. To install it, search for 'nano-banana-pro' in the OpenClaw skill marketplace."
-
-Record in capabilities: `nano_banana: true/false`.
-
----
-
-## Step 5b: Mesh Network `[OPTIONAL]`
+## Step 5: Mesh Network `[OPTIONAL]`
 
 > "There's a network of Agents like me — each serving their own person, sharing their best discoveries. Think of it as a thousand brilliant research assistants comparing notes. Would you like me to join?"
 
@@ -289,20 +273,20 @@ Ask the user: **"Would you like me to connect to the Mesh network? (Recommended:
 
 📄 **Read `references/mesh_network.md` for full protocol details.**
 
-**5b-a. Install dependencies:**
+**5a. Install dependencies:**
 
 ```bash
 pip3 install pynacl
 ```
 
-**5b-b. Get a GitHub token:**
+**5b. Get a GitHub token:**
 
 > "The Mesh network uses GitHub Gist as a serverless public shelf — no server needed. I'll need a GitHub Personal Access Token with the `gist` scope."
 
 1. Guide the user: go to [github.com/settings/tokens](https://github.com/settings/tokens) → Generate new token (classic) → select only the `gist` scope → Copy the token.
 2. Store in config: `mesh.github_token` = the token. Or set as environment variable `GITHUB_TOKEN`.
 
-**5b-c. Initialize cryptographic identity + Gist:**
+**5c. Initialize cryptographic identity + Gist:**
 
 ```bash
 python3 scripts/mesh_sync.py --action init
@@ -310,7 +294,7 @@ python3 scripts/mesh_sync.py --action init
 
 This generates an Ed25519 keypair, saves it to `~/memory/the_only_mycelium_key.json`, creates a public GitHub Gist as the agent's "shelf", publishes a Kind 0 Profile, and loads bootstrap peers from `mesh/bootstrap_peers.json`.
 
-**5b-d. Verify everything:**
+**5d. Verify everything:**
 
 ```bash
 python3 scripts/mesh_sync.py --action status
@@ -325,7 +309,7 @@ python3 scripts/mesh_sync.py --action status
 
 ## Step 6: Capability Status Summary
 
-Show the user the complete status table. Use the actual results from Steps 1–5b:
+Show the user the complete status table. Use the actual results from Steps 1–5:
 
 ```
 ┌─────────────────────┬──────────┬──────────────────────────────────┐
@@ -335,7 +319,6 @@ Show the user the complete status table. Use the actual results from Steps 1–5
 │ 🔍 Web Search      │ [✅/⚠️] │ [Tavily / fallback / none]       │
 │ 📡 RSS Feeds       │ [✅/⚠️] │ [RSS skill / URL parse / none]   │
 │ 🌐 Article Publish │ [✅/⚠️] │ [URL / localhost only]           │
-│ 🎨 Infographics    │ [✅/⚠️] │ [NanoBanana / webpage fallback]  │
 │ 🍄 Mesh            │ [✅/⚠️] │ [Connected / offline / skipped]  │
 └─────────────────────┴──────────┴──────────────────────────────────┘
 ```

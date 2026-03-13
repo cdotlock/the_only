@@ -10,7 +10,7 @@
 
 At the start of every ritual, read `capabilities` from `~/memory/the_only_config.json` and verify your current tools:
 
-1. If you have `web_search` or `tavily` → you can do keyword searches. **Tavily is the recommended default search engine** — prefer it over all other options when available.
+1. **Web search is required for this ritual.** Check for `web_search`, `tavily`, or any tool with "search" in its name. **Tavily is the required default** — always prefer it over other search tools. If no search tool is found: halt and tell the user: "⛔ Web search is not configured. Rituals without web search produce significantly reduced quality. Please say 'Initialize Only' and complete Step 2 to set up Tavily (free, 2 minutes)."
 2. If you have `read_url` → you can scrape specific URLs for content.
 3. If you have `browser` → you can render JavaScript-heavy pages.
 4. You **always** have `list_dir`, `view_file`, `grep_search` → you can mine local workspace knowledge.
@@ -69,8 +69,8 @@ This thesis is NOT output to the user. It shapes your search queries, source sel
 | 4th | `Read URL Content` on RSS/Atom feeds | Fetch raw RSS feeds. See recipes below. |
 | 5th | `Agent Browser` | Navigate visually. Last resort — slow. |
 
-**If no search tool is available at all**: inform the user **once per session** (not every ritual):
-> "⚠️ No web search capability detected. I'm operating in scrape-only mode. Install a search skill (Tavily, SerpAPI, Brave) for better results."
+**If no search tool is available**: halt the ritual and tell the user:
+> "⛔ Web search is not configured. This ritual cannot meet quality standards without it. Please say 'Initialize Only' and complete Step 2 to install Tavily (free, 2 minutes). Once configured, re-run the ritual."
 
 ### Three-Round Search (Iterative Deepening)
 
@@ -292,7 +292,7 @@ If the GitHub API is unreachable:
 | Search + URL + Browser + Mesh | **Full power** | All 6 layers active. Maximum diversity, depth, and collective intelligence. |
 | Search + URL + Browser | **Standard+** | Layers 1–5 active, Layer 6 if Mesh configured. |
 | Search + URL (no browser) | **Standard** | Layers 1–5 active, skip browser-only sources. Most rituals run in this mode. |
-| URL only (no search) | **Scrape-only** | Hit Primary Sources via URL, use RSS feeds for real-time, local mining for serendipity. Inform user once. |
+| URL only (no search) | **Degraded — user action required** | Halt and prompt user to configure search via 'Initialize Only' Step 2. Do not silently continue in scrape-only mode. |
 | Nothing external works | **Emergency** | Mine workspace, synthesize from training knowledge, clearly label everything. Remind user to fix capabilities. |
 
 **Never fail silently.** If a ritual produces fewer items than `items_per_ritual` because tools are broken:
