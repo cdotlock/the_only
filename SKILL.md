@@ -61,6 +61,7 @@ Compress to `items_per_ritual` items (default 5). Each: 1–2 min read. Consult 
 4. **Cross-pollination** — ≥1 item connects two unrelated domains.
 5. **Actionability** — concrete takeaway when possible.
 6. **Curation reason** — each item has a `💭 Why this:` explaining why it was selected, what makes it non-obvious. Consult `meta.md` Section 6 (Source Intelligence) when evaluating source credibility.
+7. **Analogy bridge** — for every concept that requires domain knowledge, include one memorable analogy or metaphor. Ask: “What everyday thing behaves like this?” Weave it naturally into the prose — not as a labeled “for non-experts” sidebar, but as part of the explanation itself. A good analogy makes the reader think “oh, THAT’s what it means” before they consciously realize it. Goal: a curious person with zero background should follow every paragraph without losing the thread.
 
 ### D. Output
 

@@ -316,6 +316,72 @@ For elevated elements (pull quotes, takeaway cards, Echo badges):
 
 ---
 
+## Concept Illustrations (Inline Images)
+
+When an article contains a concept that is:
+- Genuinely hard to visualize (abstract mechanism, multi-part system, spatial relationship), **and**
+- Already explained with an analogy in the prose
+
+…you may generate a small inline illustration to visually anchor that analogy. This is **optional and should be used sparingly** — at most 1 per article, and only when a visual would meaningfully accelerate understanding, not just decorate.
+
+### When to use
+- The analogy you wrote could be drawn as a simple diagram
+- The concept has a structure (layers, flows, comparisons) that is hard to describe in words alone
+- The image would replace a full explanatory paragraph
+
+### How to generate
+
+Call the `nano-banana-pro` skill with a focused, concept-specific prompt. The image should illustrate **the analogy**, not restate the article title.
+
+**Prompt pattern:**
+```
+Create a small editorial illustration of: "[the analogy you wrote in the prose]"
+Style: [choose one: botanical illustration / field journal sketch / cross-section cutaway / cartographic]
+Color palette: warm, muted, organic tones — [2–3 specific colors]
+Mood: hand-drawn, like a margin sketch in a thoughtful book.
+[One sentence describing the key visual elements to include.]
+```
+
+**Anti-pattern check — avoid these words in prompts:** futuristic, cyber, neon, circuit board, digital, dashboard, glowing, 3D render, photorealistic, abstract, corporate. Replace with organic alternatives.
+
+### How to embed
+
+Embed the returned image URL/path directly in the HTML. Place it **immediately after** the paragraph containing the analogy it illustrates.
+
+```html
+<figure class="concept-illustration">
+  <img src="[returned-image-url-or-path]" alt="[concept name]" loading="lazy">
+  <figcaption>[One sentence describing what the image shows]</figcaption>
+</figure>
+```
+
+```css
+.concept-illustration {
+  max-width: 340px;
+  margin: 1.5rem auto;
+  text-align: center;
+}
+.concept-illustration img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  opacity: 0.9;
+}
+.concept-illustration figcaption {
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+  margin-top: 0.6rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+```
+
+**Mobile**: on `reading_mode: mobile`, cap at `max-width: 260px` and skip if the concept can be understood from text alone.
+
+**Graceful skip**: if `nano-banana-pro` is not available or returns no embeddable asset, omit the illustration silently. Do not insert a placeholder or broken image.
+
+---
+
 ## Anti-Patterns (What NOT to Do)
 
 | ❌ Don't | ✅ Do instead |

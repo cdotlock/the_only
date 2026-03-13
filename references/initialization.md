@@ -113,20 +113,25 @@ If no search tool is available, try to install one:
 3. After installation, **re-test** with a search query.
 4. If successful: ✅ Record in `capabilities`. This skill is now **persistently installed** and will survive restarts.
 
-### Phase C — Tavily Manual Setup (Final Fallback)
+### Phase C — Manual Search Skill Setup (Final Fallback)
 
-If ClawhHub has no suitable skill, or installation failed:
+If neither Phase A nor Phase B yielded a working search tool, guide the user to install one manually.
 
-> "I couldn't find a pre-built search skill. Let's set up Tavily — it's the best option for AI-powered search."
+> "I couldn't find a search skill. Let's install one — any search skill works. Here are your options:"
 
-1. Guide the user: "Go to [tavily.com](https://tavily.com), sign up (free tier: 1000 searches/month), and copy your API key."
-2. **Configure as a persistent skill/environment variable** — not a one-time setting:
-   - Option A: If OpenClaw supports env-based tool config: set `TAVILY_API_KEY` in the OpenClaw environment settings (persists across sessions).
-   - Option B: If the user has a Tavily skill that needs a key: configure via `openclaw skill config tavily --api-key <KEY>`.
-3. **Verify** with a test search.
-4. If successful: ✅ Record `capabilities.tavily: true` and `capabilities.search_skill: "<skill-name-or-tavily>"`.
+**Recommended: Tavily** (free tier: 1,000 searches/month — easiest to set up)
+1. Go to [tavily.com](https://tavily.com) → sign up → copy your API key.
+2. Install it as a persistent skill in OpenClaw: `openclaw skill install tavily` and configure the key, or set `TAVILY_API_KEY` in OpenClaw environment settings.
 
-> **Key principle**: The search capability must be **installed as a skill and saved permanently**. A one-time API call is not enough — the next ritual will lose it.
+**Alternatives** (any of these work equally well):
+- Brave Search API (`brave_search`)
+- SerpAPI (`serpapi`)
+- Bing Search API (`bing_search`)
+- Any OpenClaw skill with "search" in its name
+
+**Key principle**: Install it as a persistent skill — not a one-time API call. The capability must survive across sessions and cron restarts.
+
+After installation: verify with a test search. Record `capabilities.search_skill: "<installed-skill-name>"`.
 
 ### If user wants to skip
 

@@ -10,7 +10,7 @@
 
 At the start of every ritual, read `capabilities` from `~/memory/the_only_config.json` and verify your current tools:
 
-1. **Web search is required for this ritual.** Check for `web_search`, `tavily`, or any tool with "search" in its name. **Tavily is the required default** — always prefer it over other search tools. If no search tool is found: halt and tell the user: "⛔ Web search is not configured. Rituals without web search produce significantly reduced quality. Please say 'Initialize Only' and complete Step 2 to set up Tavily (free, 2 minutes)."
+1. **Web search is required for this ritual.** Check for any installed search skill: `web_search`, `tavily`, `brave_search`, `serpapi`, or any tool with "search" in its name. Use whichever is available — they are equivalent for Ruby's purposes. If no search tool is found: halt and tell the user: "⛔ Web search is not configured. Rituals without web search produce significantly reduced quality. Please say 'Initialize Only' and complete Step 2 to install a search skill (Tavily is recommended, free, 2 minutes)."
 2. If you have `read_url` → you can scrape specific URLs for content.
 3. If you have `browser` → you can render JavaScript-heavy pages.
 4. You **always** have `list_dir`, `view_file`, `grep_search` → you can mine local workspace knowledge.
@@ -70,7 +70,7 @@ This thesis is NOT output to the user. It shapes your search queries, source sel
 | 5th | `Agent Browser` | Navigate visually. Last resort — slow. |
 
 **If no search tool is available**: halt the ritual and tell the user:
-> "⛔ Web search is not configured. This ritual cannot meet quality standards without it. Please say 'Initialize Only' and complete Step 2 to install Tavily (free, 2 minutes). Once configured, re-run the ritual."
+> "⛔ Web search is not configured. This ritual cannot meet quality standards without it. Please say 'Initialize Only' and complete Step 2 to install a search skill (Tavily recommended, free, 2 minutes). Once configured, re-run the ritual."
 
 ### Three-Round Search (Iterative Deepening)
 
