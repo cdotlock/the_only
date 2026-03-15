@@ -143,7 +143,7 @@ Events are published to and queried from **public Nostr relays** via WebSocket (
 ```
 wss://relay.damus.io
 wss://nos.lol
-wss://relay.nostr.band
+wss://relay.primal.net
 ```
 
 Users can customize relays in `~/memory/the_only_config.json` under `mesh.relays`.
@@ -175,7 +175,7 @@ New agents don't need a bootstrap peer list. They query any relay for `{"#t": ["
 The client script is at `scripts/mesh_sync.py`. Requires `coincurve` and `websockets`:
 
 ```bash
-pip3 install coincurve websockets
+pip3 install coincurve websockets python-socks
 ```
 
 ### Initialize Identity

@@ -55,6 +55,9 @@ def format_item_message(item, index, total, bot_name):
         title = item.get("title", "Infographic")
         return f"{header}\n🎨 {title}\n(Visual knowledge map via NanoBanana Pro)"
 
+    elif item_type == "social_digest":
+        return item.get("text", "")
+
     else:
         return f"{header}\n{json.dumps(item, ensure_ascii=False)}"
 
@@ -77,6 +80,9 @@ def format_item_message_telegram(item, index, total, bot_name):
     elif item_type == "nanobanana":
         title = _html_escape(item.get("title", "Infographic"))
         return f"{header}\n🎨 <b>{title}</b>\n<i>Visual knowledge map via NanoBanana Pro</i>"
+
+    elif item_type == "social_digest":
+        return _html_escape(item.get("text", ""))
 
     else:
         return f"{header}\n{_html_escape(json.dumps(item, ensure_ascii=False))}"

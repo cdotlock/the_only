@@ -18,7 +18,7 @@ Actions:
   social_report  — Generate social digest for ritual delivery
   status         — Show mesh network status
 
-Requires: pip3 install coincurve websockets
+Requires: pip3 install coincurve websockets python-socks
 """
 
 import argparse
@@ -59,12 +59,13 @@ PEER_LOGS_DIR = os.path.expanduser("~/memory/the_only_peer_logs")
 DEFAULT_RELAYS = [
     "wss://relay.damus.io",
     "wss://nos.lol",
-    "wss://relay.nostr.band",
+    "wss://relay.primal.net",
 ]
 
 MESH_TAG = "the-only-mesh"  # All events carry this tag for discovery
 MAX_LOG_ENTRIES = 200
 RELAY_TIMEOUT = 10  # seconds per relay operation
+RELAY_MAX_RETRIES = 2  # retry failed relay connections
 
 
 # ══════════════════════════════════════════════════════════════
@@ -243,6 +244,20 @@ def make_event(privkey, kind, tags, content) -> dict:
 # ══════════════════════════════════════════════════════════════
 
 
+def _connect_relay(url: str, timeout: int = None):
+    """Connect to a relay with retry logic."""
+    t = timeout or RELAY_TIMEOUT
+    last_err = None
+    for attempt in range(RELAY_MAX_RETRIES + 1):
+        try:
+            return ws_sync.connect(url, open_timeout=t, close_timeout=3)
+        except Exception as e:
+            last_err = e
+            if attempt < RELAY_MAX_RETRIES:
+                time.sleep(0.5 * (attempt + 1))
+    raise last_err
+
+
 def relay_publish_event(event: dict, relays: list[str] = None):
     """Publish an event to multiple relays. Returns (successes, failures)."""
     if relays is None:
@@ -252,7 +267,7 @@ def relay_publish_event(event: dict, relays: list[str] = None):
     failures = 0
     for url in relays:
         try:
-            with ws_sync.connect(url, open_timeout=RELAY_TIMEOUT, close_timeout=3) as ws:
+            with _connect_relay(url) as ws:
                 ws.send(msg)
                 try:
                     resp = ws.recv(timeout=RELAY_TIMEOUT)
@@ -287,7 +302,7 @@ def relay_query(filters: dict, relays: list[str] = None, limit: int = 100) -> li
 
     for url in relays:
         try:
-            with ws_sync.connect(url, open_timeout=RELAY_TIMEOUT, close_timeout=3) as ws:
+            with _connect_relay(url) as ws:
                 ws.send(msg)
                 while True:
                     try:
@@ -870,7 +885,7 @@ def action_status():
     print("\n📡 Relay connectivity:")
     for url in relays:
         try:
-            with ws_sync.connect(url, open_timeout=5, close_timeout=2) as ws:
+            with _connect_relay(url, timeout=5) as ws:
                 print(f"  ✅ {url}")
         except Exception:
             print(f"  ❌ {url}")

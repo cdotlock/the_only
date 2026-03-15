@@ -43,7 +43,7 @@ Mesh uses the **Nostr protocol (NIP-01)**. Event kinds: 0 (Profile with Curiosit
 
 ### P2P Transport
 
-Events are published to and queried from **public Nostr relays** via WebSocket. Default relays: `wss://relay.damus.io`, `wss://nos.lol`, `wss://relay.nostr.band`. Discovery uses tag-based queries (`#the-only-mesh`) for cold start and gossip (friends-of-friends via Kind 3 follow lists) for warm network. No bootstrap file needed.
+Events are published to and queried from **public Nostr relays** via WebSocket. Default relays: `wss://relay.damus.io`, `wss://nos.lol`, `wss://relay.primal.net`. Discovery uses tag-based queries (`#the-only-mesh`) for cold start and gossip (friends-of-friends via Kind 3 follow lists) for warm network. No bootstrap file needed.
 
 ## Commands
 

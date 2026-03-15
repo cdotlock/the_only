@@ -283,7 +283,7 @@ Ask the user: **"Would you like me to connect to the Mesh network? (Recommended:
 **5a. Install dependencies:**
 
 ```bash
-pip3 install coincurve websockets
+pip3 install coincurve websockets python-socks
 ```
 
 **5b. Initialize cryptographic identity (zero configuration):**
