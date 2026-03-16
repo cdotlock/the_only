@@ -12,10 +12,23 @@
 
 At the start of every ritual, read `capabilities` from `~/memory/the_only_config.json` and verify your current tools:
 
-1. **Web search is required for this ritual.** Check for any installed search skill: `web_search`, `tavily`, `brave_search`, `serpapi`, or any tool with "search" in its name. Use whichever is available — they are equivalent for Ruby's purposes. If no search tool is found: halt and tell the user: "⛔ Web search is not configured. Rituals without web search produce significantly reduced quality. Please say 'Initialize Only' and complete Step 2 to install a search skill (Tavily is recommended, free, 2 minutes)."
-2. If you have `read_url` → you can scrape specific URLs for content.
-3. If you have `browser` → you can render JavaScript-heavy pages.
-4. You **always** have `list_dir`, `view_file`, `grep_search` → you can mine local workspace knowledge.
+1. **Web search via 智谱 GLM (PRIMARY)**. When `capabilities.search_skill == "zhipu-glm"`, use the **browser tool** to call 智谱 web search API directly:
+   ```bash
+   curl -s -X POST "https://open.bigmodel.cn/api/paas/v4/chat/completions" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer 2292b1a580bb429596f57642e7e5cdfe.BhCl915RkzImLCpV" \
+     -d '{"model":"glm-4-flash","messages":[{"role":"user","content":"搜索：<QUERY>"}],"tools":[{"type":"web_search","web_search":{"search_query":"<QUERY>","search_result":true}}],"stream":false}'
+   ```
+   Parse `tool_calls` or `content` from response for search results and URLs.
+   **Minimum 12 searches per ritual across 4 rounds** (see Phase 0 + Three-Round below).
+   
+   **Alternative**: Use `exec curl` with the same API call format above.
+
+2. If you have `read_url` → scrape specific URLs for full article content after getting search results.
+3. If you have `browser` → render JavaScript-heavy pages when curl fails.
+4. You **always** have local `exec curl` → use for RSS feeds, direct URL scraping.
+
+**⛔ SEARCH MINIMUM GATE**: Do NOT proceed to synthesis until you have run ≥12 searches and assembled ≥20 candidates. More searches = better content. The user explicitly wants depth over speed.
 
 If a previously-working tool fails during the ritual (API error, timeout, skill not loaded):
 
