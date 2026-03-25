@@ -418,9 +418,128 @@ When a primary source fails:
 
 ---
 
-## 14. Compatibility
+## 14. v2 Runtime Scripts
 
-- **v1 → v2 migration**: A migration script reads `context.md` and `meta.md`, parses them into three-tier JSON, and writes new files. Old files preserved as backups.
+The v2 runtime layer consists of Python CLI tools in `scripts/`. Each is standalone and self-tested.
+
+### Memory System
+
+```bash
+# Read all three memory tiers and print summary
+python3 scripts/memory_v2.py --action read-all
+
+# Validate all tiers (check schema, report warnings)
+python3 scripts/memory_v2.py --action validate
+
+# Run maintenance cycle (compress episodic → semantic, regenerate markdown)
+python3 scripts/memory_v2.py --action maintain
+
+# Generate context.md and meta.md projections from JSON tiers
+python3 scripts/memory_v2.py --action project
+
+# Print tier statistics
+python3 scripts/memory_v2.py --action status
+```
+
+### Narrative Arc
+
+```bash
+# Build narrative arc from candidate items (JSON output)
+python3 scripts/narrative_arc.py --action build --payload '[{"title":"...","composite_score":8.0,"topics":["ai"],"is_serendipity":false}]'
+
+# Preview ritual with arc positions (human-readable output)
+python3 scripts/narrative_arc.py --action preview --payload '[...]'
+```
+
+### Source Intelligence
+
+```bash
+# Pre-rank sources by expected yield
+python3 scripts/source_graph.py --action rank
+
+# Pre-rank excluding already-fetched sources
+python3 scripts/source_graph.py --action rank --fetched "hn,arxiv"
+
+# Show all source profiles
+python3 scripts/source_graph.py --action status
+
+# Record a quality score for a source
+python3 scripts/source_graph.py --action update --source "hn" --quality 7.5
+
+# Record a fetch failure
+python3 scripts/source_graph.py --action fail --source "hn"
+```
+
+### Delivery Engine (v2)
+
+```bash
+# Deliver items (backward-compatible with v1)
+python3 scripts/the_only_engine_v2.py --action deliver --payload '[{"type":"interactive","title":"...","url":"..."}]'
+
+# Dry run (print without sending)
+python3 scripts/the_only_engine_v2.py --action deliver --payload '[...]' --dry-run
+
+# Preview ritual plan with narrative arc positions
+python3 scripts/the_only_engine_v2.py --action preview --payload '[{"title":"...","composite_score":8.0,"topics":["ai"],"depth_score":7.0}]'
+
+# Search knowledge archive
+python3 scripts/the_only_engine_v2.py --action archive --query "transformers"
+
+# Check delivery + memory + archive status
+python3 scripts/the_only_engine_v2.py --action status
+```
+
+### Knowledge Archive
+
+```bash
+# Search articles by keyword
+python3 scripts/knowledge_archive.py --action search --query "transformers"
+
+# Search by topic
+python3 scripts/knowledge_archive.py --action search --topics "ai,ml"
+
+# Monthly summary
+python3 scripts/knowledge_archive.py --action summary --year 2026 --month 3
+
+# Clean up old HTML files (preserve archive metadata)
+python3 scripts/knowledge_archive.py --action cleanup --days 14
+
+# Archive status
+python3 scripts/knowledge_archive.py --action status
+```
+
+### Migration (v1 → v2)
+
+```bash
+# Dry run — show what would be migrated without writing files
+python3 scripts/migrate_v1_to_v2.py --dry-run
+
+# Run migration — backs up v1 files, writes v2 JSON tiers
+python3 scripts/migrate_v1_to_v2.py
+
+# Custom memory directory
+python3 scripts/migrate_v1_to_v2.py --memory-dir ~/memory
+```
+
+### Self-Tests
+
+Every runtime module includes inline self-tests:
+
+```bash
+python3 scripts/memory_v2.py --action test          # 62 tests
+python3 scripts/narrative_arc.py --action test       # 17 tests
+python3 scripts/source_graph.py --action test        # 22 tests
+python3 scripts/knowledge_archive.py --action test   # 36 tests
+python3 scripts/migrate_v1_to_v2.py --action test    # 73 tests
+python3 scripts/the_only_engine_v2.py --action test  # 34 tests
+```
+
+---
+
+## 15. Compatibility
+
+- **v1 → v2 migration**: Run `python3 scripts/migrate_v1_to_v2.py` to parse `context.md` and `meta.md` into three-tier JSON. Old files preserved as `.v1.bak` backups.
+- **Delivery engine**: `the_only_engine_v2.py` accepts the same CLI arguments as `the_only_engine.py`. The v1 engine remains available for rollback.
 - **Mesh compatibility**: v2 agents communicate with v1 agents. New event kinds (1118–1120) are ignored by v1. Core kinds (0, 1, 3, 1111–1117) unchanged.
 - **Config compatibility**: All v1 config fields remain valid. New fields have defaults. `version` field gates behavior.
 
