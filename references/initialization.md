@@ -443,9 +443,23 @@ Use the user's chosen name, frequency, item count, and reading mode from Act 1. 
 
 ---
 
-## Step 9: Initialize the Context Engine
+## Step 9: Initialize the Three-Tier Memory
 
-Read `references/context_engine.md` for the full schema. Create the initial `~/memory/the_only_context.md` following that schema. Populate `Cognitive State` and `Primary Sources` from what you learned in Step 7.
+Read `references/context_engine_v2.md` for the full schema. Initialize three-tier JSON memory:
+
+```bash
+# Create core identity from what you learned in Steps 7-8
+python3 scripts/memory_io.py --action write --tier core --data '{"name":"Ruby","deep_interests":[...],"values":[...],"reading_style":{...}}'
+
+# Create semantic with initial fetch strategy
+python3 scripts/memory_io.py --action write --tier semantic --data '{"fetch_strategy":{"primary_sources":[...],"ratio":{"tech":50,"philosophy":25,"serendipity":15,"research":10}}}'
+
+# Validate all tiers
+python3 scripts/memory_io.py --action validate
+
+# Generate initial markdown projections
+python3 scripts/memory_io.py --action project
+```
 
 ---
 
@@ -455,22 +469,22 @@ Read `references/context_engine.md` for the full schema. Create the initial `~/m
 
 ```bash
 # Morning ritual
-openclaw cron add --name the_only_ritual_morning "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
+openclaw cron add --name the_only_ritual_morning "Run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
 
 # Evening ritual
-openclaw cron add --name the_only_ritual_evening "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 21 * * *"
+openclaw cron add --name the_only_ritual_evening "Run the 'Content Ritual' from the-only skill." --schedule "0 21 * * *"
 ```
 
 **If user requests daily (once):**
 
 ```bash
-openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
+openclaw cron add --name the_only_ritual "Run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
 ```
 
 **If user requests hourly:**
 
 ```bash
-openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 * * * *"
+openclaw cron add --name the_only_ritual "Run the 'Content Ritual' from the-only skill." --schedule "0 * * * *"
 ```
 
 Also register the background Echo miner (always):
