@@ -16,6 +16,7 @@ Actions:
   project           Regenerate markdown projections from JSON tiers
   status            Print summary of all three tiers
   append-episodic   Append one entry to episodic buffer (FIFO 50)
+  maintain          Run Maintenance Cycle: compress Episodic → Semantic, adjust ratios
 """
 
 from __future__ import annotations
@@ -289,6 +290,165 @@ def action_project(memory_dir: Path) -> None:
     print(f"ok: projected {meta_path}")
 
 
+def action_maintain(memory_dir: Path) -> None:
+    """Run a Maintenance Cycle: compress Episodic → Semantic, adjust ratios."""
+    episodic = _load_tier(memory_dir, "episodic")
+    semantic = _load_tier(memory_dir, "semantic")
+    entries = episodic.get("entries", [])
+
+    if not entries:
+        print("maintain: no episodic entries to process")
+        return
+
+    changes: list[str] = []
+
+    # ── 1. Compute engagement averages by category ───────────────────────
+    cat_scores: dict[str, list[float]] = {}
+    source_scores: dict[str, list[float]] = {}
+    source_failures: dict[str, int] = {}
+    topic_mentions: dict[str, int] = {}
+
+    for entry in entries:
+        # Engagement by category
+        cats = entry.get("categories", {})
+        engagement = entry.get("engagement", {})
+        for item_key, sig in engagement.items():
+            if isinstance(sig, dict):
+                score = sig.get("score", 0)
+                topic = sig.get("topic", "")
+                if topic:
+                    topic_mentions[topic] = topic_mentions.get(topic, 0) + 1
+                # Map to categories if available
+                for cat in cats:
+                    cat_scores.setdefault(cat, []).append(score)
+
+        # Source tracking
+        for src in entry.get("sources_used", []):
+            source_scores.setdefault(src, []).append(
+                entry.get("avg_quality_score", 5.0)
+            )
+        for src in entry.get("sources_failed", []):
+            source_failures[src] = source_failures.get(src, 0) + 1
+
+    # ── 2. Update engagement_patterns ────────────────────────────────────
+    eng_patterns = semantic.get("engagement_patterns", {})
+    for cat, scores in cat_scores.items():
+        avg = sum(scores) / len(scores) if scores else 0
+        old = eng_patterns.get(cat, {})
+        old_count = old.get("count", 0)
+        eng_patterns[cat] = {
+            "avg": round(avg, 2),
+            "count": old_count + len(scores),
+            "trend": (
+                "rising" if avg > old.get("avg", 0) + 0.3
+                else "falling" if avg < old.get("avg", 0) - 0.3
+                else "stable"
+            ),
+        }
+    semantic["engagement_patterns"] = eng_patterns
+
+    # ── 3. Update source_intelligence ────────────────────────────────────
+    src_intel = semantic.get("source_intelligence", {})
+    for src, scores in source_scores.items():
+        avg_q = sum(scores) / len(scores) if scores else 0
+        fails = source_failures.get(src, 0)
+        total_attempts = len(scores) + fails
+        reliability = len(scores) / total_attempts if total_attempts > 0 else 0
+        existing = src_intel.get(src, {})
+        src_intel[src] = {
+            "quality_avg": round(avg_q, 1),
+            "reliability": round(reliability, 2),
+            "consecutive_failures": fails,
+            "last_evaluated": _now_iso()[:10],
+        }
+        if existing:
+            # Preserve fields not computed here
+            for k in ("depth", "bias", "best_for", "redundancy_with"):
+                if k in existing:
+                    src_intel[src][k] = existing[k]
+    semantic["source_intelligence"] = src_intel
+
+    # ── 4. Detect emerging interests ─────────────────────────────────────
+    emerging = semantic.get("emerging_interests", [])
+    existing_topics = {e.get("topic", "").lower() for e in emerging}
+    for topic, count in topic_mentions.items():
+        if count >= 3 and topic.lower() not in existing_topics:
+            emerging.append({
+                "topic": topic,
+                "signal_count": count,
+                "first_seen": _now_iso()[:10],
+                "status": "monitoring",
+            })
+            changes.append(f"New emerging interest: {topic} ({count} signals)")
+    # Update signal counts and promote/fade existing
+    for e in emerging:
+        t = e.get("topic", "").lower()
+        if t in {k.lower(): k for k in topic_mentions}:
+            actual_key = next(k for k in topic_mentions if k.lower() == t)
+            e["signal_count"] = e.get("signal_count", 0) + topic_mentions[actual_key]
+            if e["signal_count"] >= 5 and e.get("status") == "monitoring":
+                e["status"] = "confirmed"
+                changes.append(f"Promoted to confirmed: {e['topic']}")
+        elif e.get("status") != "faded":
+            # No new signals
+            e["status"] = "faded"
+            changes.append(f"Faded: {e['topic']}")
+    # Cap at 10
+    emerging = [e for e in emerging if e.get("status") != "faded"][:10]
+    semantic["emerging_interests"] = emerging
+
+    # ── 5. Adaptive ratio adjustment ─────────────────────────────────────
+    fetch = semantic.get("fetch_strategy", {})
+    ratio = fetch.get("ratio", {"tech": 50, "philosophy": 25, "serendipity": 15, "research": 10})
+    for cat, data in eng_patterns.items():
+        if cat in ratio:
+            avg = data.get("avg", 0)
+            if avg >= 3.0:
+                boost = min(15, int((avg - 2.0) * 5))
+                ratio[cat] = min(70, ratio[cat] + boost)
+                changes.append(f"Ratio boost: {cat} +{boost}% (avg engagement {avg})")
+            elif avg < 1.5 and data.get("count", 0) >= 10:
+                reduce = min(15, int((1.5 - avg) * 10))
+                ratio[cat] = max(5, ratio[cat] - reduce)
+                changes.append(f"Ratio reduce: {cat} -{reduce}% (avg engagement {avg})")
+    # Enforce serendipity floor
+    if ratio.get("serendipity", 0) < 10:
+        ratio["serendipity"] = 10
+    # Normalize to 100
+    total = sum(ratio.values())
+    if total != 100 and total > 0:
+        factor = 100.0 / total
+        ratio = {k: max(1, round(v * factor)) for k, v in ratio.items()}
+    fetch["ratio"] = ratio
+    semantic["fetch_strategy"] = fetch
+
+    # ── 6. Log changes ───────────────────────────────────────────────────
+    evo_log = semantic.get("evolution_log", [])
+    for change in changes:
+        evo_log.append({"date": _now_iso()[:10], "note": change})
+    # Cap at 20
+    semantic["evolution_log"] = evo_log[-20:]
+    semantic["last_maintenance"] = _now_iso()
+
+    # ── 7. Compress Episodic (keep newest 25) ────────────────────────────
+    if len(entries) > 25:
+        episodic["entries"] = entries[-25:]
+        episodic["last_compressed"] = _now_iso()
+        _save_tier(memory_dir, "episodic", episodic)
+        print(f"maintain: compressed episodic from {len(entries)} to 25 entries")
+    else:
+        print(f"maintain: episodic has {len(entries)} entries (no compression needed)")
+
+    _save_tier(memory_dir, "semantic", semantic)
+
+    # ── 8. Regenerate projections ────────────────────────────────────────
+    action_project(memory_dir)
+
+    print(f"maintain: {len(changes)} change(s) applied")
+    for c in changes:
+        print(f"  • {c}")
+
+
 # ── CLI ──────────────────────────────────────────────────────────────────
 
 
@@ -299,7 +459,7 @@ def main() -> None:
     parser.add_argument(
         "--action",
         required=True,
-        choices=["read", "write", "validate", "project", "status", "append-episodic"],
+        choices=["read", "write", "validate", "project", "status", "append-episodic", "maintain"],
     )
     parser.add_argument("--tier", choices=["core", "semantic", "episodic"])
     parser.add_argument("--data", help="JSON string for write / append-episodic")
@@ -336,6 +496,9 @@ def main() -> None:
         if not args.data:
             parser.error("--data required for append-episodic")
         action_append_episodic(memory_dir, args.data)
+
+    elif args.action == "maintain":
+        action_maintain(memory_dir)
 
 
 if __name__ == "__main__":

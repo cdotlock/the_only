@@ -40,9 +40,9 @@ Each item is sent as a **separate message** (enforced by the delivery engine). E
 
 | User behavior | Signal | Engagement score | Action |
 |---|---|---|---|
-| Replies with detailed analysis or personal connection | **Exceptional** | 5 | Log to Ledger, promote topic to Core |
-| Replies to the message (text) | **Strong positive** | 4 | Log to Ledger with topic |
-| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 3 | Log to Ledger with topic |
+| Replies with detailed analysis or personal connection | **Exceptional** | 5 | Log to Episodic, promote topic to Core |
+| Replies to the message (text) | **Strong positive** | 4 | Log to Episodic with topic |
+| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 3 | Log to Episodic with topic |
 | Reacts with 🤔 or ❓ | **Curious** | 2 | Consider for Echo queue |
 | Opens link but no reply | **Mild interest** | 1 | Log as "viewed" |
 | No reaction at all | **Neutral/skip** | 0 | After 3 skips in same category, log as passive veto |
@@ -78,7 +78,7 @@ When the user initiates a normal conversation with you (not specifically about R
 
 3. **Silence is Data**: If a user never mentions or reacts to a specific content category across **3+ consecutive rituals**:
    - Treat it as a **passive veto**.
-   - Log to the Ledger: `"[Date]: No engagement with [Category] across 3 consecutive rituals. Likely disinterest. [engagement: 0]"`
+   - Log to Episodic: `"[Date]: No engagement with [Category] across 3 consecutive rituals. Likely disinterest. [engagement: 0]"`
    - This pattern, once logged, will trigger Engagement-Driven Exclusion during the next Maintenance Cycle.
 
 ---
@@ -103,7 +103,7 @@ This is the **only** time direct feedback-style questions are acceptable, and on
 
 All collected signals — explicit replies, emoji reactions, referenced articles, silence patterns — must be processed through this pipeline:
 
-### Signal → Ledger Pipeline
+### Signal → Episodic Pipeline
 
 ```
 1. User interaction occurs (reply, reaction, silence, conversation)
@@ -112,16 +112,16 @@ All collected signals — explicit replies, emoji reactions, referenced articles
         ↓
 3. Assign engagement score (0–5)
         ↓
-4. Format Ledger entry:
+4. Format Episodic entry:
    "[Date]: [Observation]. [engagement: N]"
         ↓
-5. Append to The Ledger in ~/memory/the_only_context.md
+5. Write to Episodic tier: python3 scripts/memory_io.py --action append-episodic --data '{...}'
         ↓
-6. If Ledger > 15 entries → trigger Maintenance Cycle
-   (see context_engine.md for compression procedure)
+6. If Episodic > 25 entries with high variance → trigger Maintenance Cycle
+   (see context_engine_v2.md for compression procedure)
 ```
 
-### Example Ledger Entries from Feedback
+### Example Episodic Entries from Feedback
 
 ```
 - 2026-02-22: User replied "🔥" to the neural architecture search article. [engagement: 2]

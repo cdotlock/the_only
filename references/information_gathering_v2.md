@@ -6,13 +6,13 @@
 
 ## 1. Philosophy
 
-v1 scanned 100+ items by headline and scored by metadata. v2 deeply reads 20-30 items and scores by actual content. Quality comes from comprehension, not volume.
+v1 scanned 100+ items by headline and scored by metadata. v2 deeply reads 30-50 items and scores by actual content. Quality comes from comprehension, not volume. Be aggressive in gathering — the wider you cast, the better your final picks.
 
 A ritual of 5 deeply understood articles beats 5 well-headlined articles every time. The bottleneck was never discovery — it was comprehension.
 
 | v1 | v2 |
 |----|-----|
-| Scan 100+ items, score by metadata | Deeply evaluate 20-30, score by content |
+| Scan 100+ items, score by metadata | Deeply evaluate 30-50, score by content |
 | Fixed 3-round search | Adaptive thread-following search |
 | All sources fetched equally | Source pre-ranking by expected yield |
 | Independent per-item scoring | Graph-level modifiers: tension, redundancy, cross-domain |
@@ -49,13 +49,15 @@ Thread-following replaces fixed rounds. No mandatory minimums.
 
 **Flow:**
 
-1. **Broad sweep** (3-4 searches) — Generated from your Search Thesis (user interests + current events + cross-domain angles). Scan results for promising threads.
+1. **Broad sweep** (4-5 searches) — Generated from your Search Thesis (user interests + current events + cross-domain angles). Scan results for promising threads. Cast wide.
 
-2. **Thread pursuit** (2-3 searches) — Follow the most interesting thread deeper: find the primary source, the author's other work, an opposing viewpoint.
+2. **Thread pursuit** (3-5 searches) — Follow the most interesting threads deeper: find the primary source, the author's other work, an opposing viewpoint. Follow multiple threads if they diverge.
 
-3. **Contrarian probe** (1-2 searches, conditional) — Only if a dominant narrative has emerged. If results are already diverse, skip this.
+3. **Contrarian probe** (1-3 searches) — Actively seek the opposing view even if results seem diverse. Echo chambers form silently.
 
-**Total: 6-10 searches**, each with clear purpose. Stop when you have 15+ strong candidates. Don't search to fill a quota.
+4. **Gap fill** (1-2 searches, conditional) — If after the first three stages you have < 30 candidates, search for topics in the user's interest areas that haven't appeared yet.
+
+**Total: 8-15 searches**, each with clear purpose. Stop when you have 25+ strong candidates. Don't stop early — more raw material means better final picks.
 
 **Key difference from v1:** Each search is crafted based on what you have already found, not generated from a template.
 
@@ -143,11 +145,11 @@ This is the critical v2 change. Read first, score second.
 
 ### Step 1: Triage (fast, metadata-based)
 
-Remove noise: error pages, 403/404, paywalls, login walls. Remove duplicate URLs. Remove items already in the archive (unless significant new information). Target: ~20 candidates remaining.
+Remove noise: error pages, 403/404, paywalls, login walls. Remove duplicate URLs. Remove items already in the archive (unless significant new information). Target: ~30 candidates remaining.
 
 ### Step 2: Full Content Read (slow, comprehension-based)
 
-For the top 15 candidates, **read the full source content**. Not skim — read. For each item, note:
+For the top 20-25 candidates, **read the full source content**. Not skim — read. For each item, note:
 
 - **Core insight** — What is the argument? (1 sentence)
 - **Evidence quality** — Primary source, secondary, or opinion?

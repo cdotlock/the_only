@@ -85,14 +85,14 @@ GATE 0: All three memory tiers loaded. Archive checked. Identity confirmed.
 
 Read `references/information_gathering_v2.md` for the full adaptive search protocol.
 
-**Core shift from v1**: Instead of scanning 100+ headlines, deeply evaluate 20-30 candidates. Pre-rank sources. Read content fully before scoring. Follow threads adaptively instead of fixed rounds.
+**Core shift from v1**: Instead of scanning 100+ headlines, deeply evaluate **30-50 candidates**. Pre-rank sources. Read content fully before scoring. Follow threads adaptively instead of fixed rounds. Be aggressive — cast a wide net, then filter ruthlessly.
 
 Execute in order:
 1. **Search Thesis** — 5 questions before any search (what they care about, world context, blind spots, what you gave last time, what gap remains).
 2. **Source Pre-Ranking** — Consult `semantic.json` Source Intelligence Graph. Rank by `expected_yield = quality_avg * reliability * (1 - redundancy)`. Skip low-yield sources.
-3. **Adaptive Search** — 6-10 purposeful searches. Start broad (3-4 queries), follow promising threads (2-3 depth queries), pivot when exhausted, contrarian probe if dominant narrative emerges.
+3. **Adaptive Search** — **8-15 purposeful searches**. Start broad (4-5 queries), follow promising threads (3-5 depth queries), pivot when exhausted, contrarian probe if dominant narrative emerges. More searches = more raw material = better final selection. Don't stop early.
 4. **Six Layers**: real-time pulse, deep dive, serendipity, echo fulfillment, local knowledge, mesh feed. Source pool and scraping recipes in `references/information_gathering_v2.md` § 5.
-5. **Full-Read Evaluation**: Top 15 candidates read fully — not just headlines — before scoring. Triage first (remove 404s/paywalls), then read.
+5. **Full-Read Evaluation**: Top **20-25 candidates** read fully — not just headlines — before scoring. Triage first (remove 404s/paywalls), then read. The more you read, the better your selection judgment.
 6. **Quality Scoring** (6 dimensions with weights) and **Graph-Level Modifiers**: see `references/information_gathering_v2.md` §§ 7–8.
 7. Each selected item gets composite score + `Why this:` curation reason.
 8. Mesh items: merge into pool, re-score locally. Respect `mesh.network_content_ratio`.
@@ -107,14 +107,15 @@ Compress to `items_per_ritual` items (default 5), each 1-2 min read. Consult `se
 1. No filler — every sentence carries information.
 2. Angle over summary — unique angle, not recap.
 3. Structural clarity — headline max 12 words, 1-sentence hook, 3-5 dense paragraphs.
-4. Cross-pollination — at least 1 item connects two unrelated domains.
-5. Actionability — concrete takeaway when possible.
-6. Curation reason — `Why this:` explaining selection logic, not content summary.
-7. Analogy bridge — for dense topics, include a vivid analogy.
-8. Dialectical rigor — argue against each item before finalizing. If it doesn't survive scrutiny, replace it.
-9. Source discipline — prefer primary sources. Acknowledge secondary.
-10. Cross-item reference — at least one sentence per item connects to another item in this ritual.
-11. Insight density — the synthesis should be shorter than the source but contain more understanding per word.
+4. **Simplification** — make complex knowledge accessible. Explain hard concepts using everyday language, vivid metaphors, and progressive layers (simple → nuanced). The reader should grasp the core idea in the first paragraph even if they have zero domain background. Think "Feynman explaining physics to freshmen" — precision without jargon.
+5. Cross-pollination — at least 1 item connects two unrelated domains.
+6. Actionability — concrete takeaway when possible.
+7. Curation reason — `Why this:` explaining selection logic, not content summary.
+8. Analogy bridge — for dense topics, include a vivid analogy. The best analogies map structure, not just surface similarity.
+9. Dialectical rigor — argue against each item before finalizing. If it doesn't survive scrutiny, replace it.
+10. Source discipline — prefer primary sources. Acknowledge secondary.
+11. Cross-item reference — at least one sentence per item connects to another item in this ritual.
+12. Insight density — the synthesis should be shorter than the source but contain more understanding per word.
 
 Only synthesize actually-fetched content. If a live source failed, label: "Based on training data — live source unavailable."
 
@@ -133,6 +134,8 @@ Order the selected items into 5 positions that form a story:
 | **Synthesis** | Connects themes, forward-looking | Item that ties other items together |
 
 Arc assignment is your judgment call based on content — not a formula. The arc creates **narrative tension**: the reader begins curious, goes deep, gets surprised, gets challenged, then finds coherence.
+
+**Simplification across the arc**: Every position must be accessible. The Opening should require zero prior knowledge. The Deep Dive goes deepest but must still build up from first principles — never assume the reader already knows the terminology. Use progressive disclosure: lead with the "so what", then layer in the mechanism. Complex knowledge explained simply is more impressive than complex knowledge left complex.
 
 If `items_per_ritual` differs from 5, adapt: fewer items collapse positions (Opening + Deep Dive); more items expand the middle.
 
@@ -156,11 +159,12 @@ GATE 4: All HTML files exist. URLs valid. Visual quality confirmed.
 Follow `references/delivery_and_checklist.md` — ritual is not complete until checklist passes.
 
 1. Deliver all items via configured channels.
-2. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action social_report` — append warm 3-5 line digest as final message.
-3. **Archive update**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` — add each delivered article (id, title, topics, quality_score, source, arc_position, html_path, delivered_at). Automatically links related articles by topic overlap.
-4. Execute post-delivery checklist.
+2. **Guided feedback**: Each delivered message ends with a natural conversational hook that invites (but never demands) a response. Rotate hook styles across items: personal connection, vulnerability ("I almost cut this one"), serendipity flag, provocation, intrigue. See `references/feedback_loop.md` for templates. The hook must feel like Ruby sharing a thought, not requesting a rating.
+3. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action social_report` — append warm 3-5 line digest as final message.
+4. **Archive update**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` — add each delivered article (id, title, topics, quality_score, source, arc_position, html_path, delivered_at). Automatically links related articles by topic overlap.
+5. Execute post-delivery checklist.
 
-GATE 5: Delivery checklist passed. Archive index updated. Social digest included if mesh enabled.
+GATE 5: Delivery checklist passed. Archive index updated. Feedback hooks attached. Social digest included if mesh enabled.
 
 ### Phase 6: Post-Ritual Reflection
 
@@ -170,7 +174,7 @@ Read `references/mesh_network.md` for post-ritual mesh actions.
 1. **Episodic update**: Append ritual impression to `the_only_episodic.json` — items, scores, engagement signals, sources used, search queries, narrative theme.
 2. **Ritual log**: Append to `ritual_log.jsonl`.
 3. **Maintenance trigger check** (adaptive, not fixed cadence):
-   - Episodic buffer > 25 entries with high signal variance? Trigger Maintenance Cycle (compress Episodic into Semantic).
+   - Episodic buffer > 25 entries with high signal variance? Run `python3 scripts/memory_io.py --action maintain` — compresses Episodic into Semantic, adjusts ratios, detects emerging interests, regenerates projections.
    - Episodic buffer > 50 entries? Force Maintenance regardless.
    - 3+ consecutive low-engagement rituals (avg < 1.0)? Emergency strategy review.
    - Explicit user direction change? Fast-path update to Core tier.
@@ -202,7 +206,7 @@ Read `references/context_engine_v2.md` for schemas, CRUD operations, and self-ev
 
 **Architecture**: Episodic (raw impressions, FIFO 50) feeds Semantic (cross-ritual patterns, compressed during Maintenance) feeds Core (stable identity, rarely updated). JSON is source of truth. Markdown projections (`context.md`, `meta.md`) are regenerated, never edited directly.
 
-**Scripts**: `python3 scripts/memory_io.py --action read|write|validate|project|status|append-episodic`
+**Scripts**: `python3 scripts/memory_io.py --action read|write|validate|project|status|append-episodic|maintain`
 
 ---
 
@@ -315,8 +319,8 @@ Failed source: try fallback, update Source Intelligence (increment `consecutive_
 Python CLI tools in `scripts/`. Main logic lives in SKILL.md — scripts handle structured I/O that Claude shouldn't do inline.
 
 ```bash
-# Memory I/O (read, write, validate, project markdown, status, append episodic)
-python3 scripts/memory_io.py --action read|write|validate|project|status|append-episodic --tier core|semantic|episodic
+# Memory I/O (read, write, validate, project markdown, status, append episodic, maintain)
+python3 scripts/memory_io.py --action read|write|validate|project|status|append-episodic|maintain --tier core|semantic|episodic
 
 # Delivery engine (multi-channel webhook dispatch)
 python3 scripts/the_only_engine.py --action deliver|status --payload '[...]' [--dry-run]
