@@ -1,0 +1,27 @@
+{
+  "name": "casual",
+  "description": "Casual browsing mode for serendipity",
+  "fetch_strategy": {
+    "primary_sources": [
+      "hackernews",
+      "blog"
+    ],
+    "ratio": {
+      "serendipity": 60,
+      "tech": 30,
+      "philosophy": 10
+    },
+    "synthesis_rules": [
+      "Focus on surprise and novelty",
+      "Lighter analysis",
+      "Include personal connections"
+    ]
+  },
+  "reading_preferences": {
+    "preferred_length": "medium",
+    "preferred_style": "conversational"
+  },
+  "delivery_channels": [
+    "telegram"
+  ]
+}

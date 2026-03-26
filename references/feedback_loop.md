@@ -40,9 +40,10 @@ Each item is sent as a **separate message** (enforced by the delivery engine). E
 
 | User behavior | Signal | Engagement score | Action |
 |---|---|---|---|
-| Replies to the message (text) | **Strong positive** | 2 | Log to Ledger with topic |
-| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 2 | Log to Ledger with topic |
-| Reacts with 🤔 or ❓ | **Curious** | 1 | Consider for Echo queue |
+| Replies with detailed analysis or personal connection | **Exceptional** | 5 | Log to Ledger, promote topic to Core |
+| Replies to the message (text) | **Strong positive** | 4 | Log to Ledger with topic |
+| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 3 | Log to Ledger with topic |
+| Reacts with 🤔 or ❓ | **Curious** | 2 | Consider for Echo queue |
 | Opens link but no reply | **Mild interest** | 1 | Log as "viewed" |
 | No reaction at all | **Neutral/skip** | 0 | After 3 skips in same category, log as passive veto |
 | Replies negatively ("boring", "not useful") | **Strong negative** | 0 | Log immediately, consider for exclusion |
@@ -107,9 +108,9 @@ All collected signals — explicit replies, emoji reactions, referenced articles
 ```
 1. User interaction occurs (reply, reaction, silence, conversation)
         ↓
-2. Classify signal type (positive / negative / curious / neutral)
+2. Classify signal type (exceptional / positive / negative / curious / neutral)
         ↓
-3. Assign engagement score (0–3)
+3. Assign engagement score (0–5)
         ↓
 4. Format Ledger entry:
    "[Date]: [Observation]. [engagement: N]"

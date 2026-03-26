@@ -15,7 +15,6 @@ Actions:
 
 from __future__ import annotations
 
-import json
 import os
 import sys
 import argparse
@@ -24,9 +23,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+from optimized_io import load_json, save_json, timestamp
 
 ARCHIVE_DIR = os.path.expanduser("~/memory/the_only_archive")
 INDEX_FILE = os.path.join(ARCHIVE_DIR, "index.json")
@@ -38,30 +35,6 @@ DEFAULT_INDEX: dict = {
     "total_articles": 0,
     "entries": [],
 }
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def load_json(path: str, default: dict | None = None) -> dict:
-    """Load JSON file, returning *default* on missing/corrupt file."""
-    if default is None:
-        default = {}
-    if os.path.exists(path):
-        try:
-            with open(path, "r") as f:
-                return json.load(f)
-        except json.JSONDecodeError as exc:
-            print(f"⚠️  {path} is not valid JSON: {exc}", file=sys.stderr)
-    return default
-
-
-def save_json(path: str, data: dict) -> None:
-    """Atomically write *data* as JSON, creating parent dirs if needed."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def generate_id(timestamp: datetime, sequence: int) -> str:
@@ -385,8 +358,7 @@ class KnowledgeArchive:
             "created_at": datetime.now().isoformat(),
         }
         fpath = os.path.join(subdir, f"{ritual_id}.json")
-        with open(fpath, "w") as f:
-            json.dump(metadata, f, indent=2, ensure_ascii=False)
+        save_json(fpath, metadata)
 
 
 # ---------------------------------------------------------------------------

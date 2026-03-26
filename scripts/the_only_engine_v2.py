@@ -18,16 +18,13 @@ Actions:
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import tempfile
 import urllib.request
 from datetime import datetime
 
-# ---------------------------------------------------------------------------
-# Local v2 module imports
-# ---------------------------------------------------------------------------
+import orjson
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from memory_v2 import MemoryManager
@@ -40,37 +37,10 @@ from narrative_arc import (
 )
 from source_graph import SourceGraph
 from knowledge_archive import KnowledgeArchive, ArchiveEntry, generate_id
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
+from optimized_io import load_json, save_json, timestamp
 
 STATE_FILE = os.path.expanduser("~/memory/the_only_state.json")
 CONFIG_FILE = os.path.expanduser("~/memory/the_only_config.json")
-
-# ---------------------------------------------------------------------------
-# JSON I/O helpers (duplicated from v1 — do NOT import)
-# ---------------------------------------------------------------------------
-
-
-def load_json(path: str, default: dict | None = None) -> dict:
-    """Load JSON from path, returning default on missing/corrupt file."""
-    if default is None:
-        default = {}
-    if os.path.exists(path):
-        try:
-            with open(path, "r") as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"⚠️  {path} is not valid JSON: {e}", file=sys.stderr)
-    return default
-
-
-def save_json(path: str, data: dict) -> None:
-    """Write JSON to path with pretty-printing, creating parent dirs."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def load_config() -> dict:
@@ -106,7 +76,7 @@ def format_item_message(item: dict, index: int, total: int, bot_name: str) -> st
         return item.get("text", "")
 
     else:
-        return f"{header}\n{json.dumps(item, ensure_ascii=False)}"
+        return f"{header}\n{orjson.dumps(item).decode('utf-8')}"
 
 
 def format_item_message_telegram(
@@ -129,7 +99,7 @@ def format_item_message_telegram(
         return _html_escape(item.get("text", ""))
 
     else:
-        return f"{header}\n{_html_escape(json.dumps(item, ensure_ascii=False))}"
+        return f"{header}\n{_html_escape(orjson.dumps(item).decode('utf-8'))}"
 
 
 # ---------------------------------------------------------------------------
@@ -146,21 +116,19 @@ def push_message(
         req.add_header("Content-Type", "application/json")
 
         if platform == "discord":
-            data = json.dumps({"content": message}).encode()
+            data = orjson.dumps({"content": message})
         elif platform == "telegram":
             chat_id = (config or {}).get("telegram_chat_id", "")
             if not chat_id:
                 print("⚠️  Telegram: 'telegram_chat_id' not set in config. Skipping.")
                 return False
-            data = json.dumps(
+            data = orjson.dumps(
                 {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
-            ).encode()
+            )
         elif platform == "whatsapp":
-            data = json.dumps({"body": message}).encode()
+            data = orjson.dumps({"body": message})
         elif platform == "feishu":
-            data = json.dumps(
-                {"msg_type": "text", "content": {"text": message}}
-            ).encode()
+            data = orjson.dumps({"msg_type": "text", "content": {"text": message}})
         else:
             return False
 
@@ -260,8 +228,8 @@ def action_prerank(semantic_data: dict) -> list[tuple[str, float]]:
 def action_preview(payload_str: str) -> None:
     """Preview mode: show ritual plan with arc positions without delivering."""
     try:
-        items = json.loads(payload_str)
-    except json.JSONDecodeError:
+        items = orjson.loads(payload_str)
+    except orjson.JSONDecodeError:
         print("❌ Invalid JSON payload.", file=sys.stderr)
         sys.exit(1)
     candidates = _payload_to_candidates(items)
@@ -289,8 +257,8 @@ def action_deliver(
     max_items = config.get("items_per_ritual", 5)
 
     try:
-        items = json.loads(payload_str)
-    except json.JSONDecodeError:
+        items = orjson.loads(payload_str)
+    except orjson.JSONDecodeError:
         print("❌ Invalid JSON payload.")
         sys.exit(1)
 
@@ -617,8 +585,7 @@ def _run_tests() -> None:
         # Set up minimal config and state paths
         config_path = os.path.join(tmpdir, "the_only_config.json")
         state_path = os.path.join(tmpdir, "the_only_state.json")
-        with open(config_path, "w") as f:
-            json.dump({"name": "TestBot", "items_per_ritual": 5}, f)
+        save_json(config_path, {"name": "TestBot", "items_per_ritual": 5})
 
         global CONFIG_FILE, STATE_FILE
         orig_config = CONFIG_FILE
@@ -626,7 +593,7 @@ def _run_tests() -> None:
         CONFIG_FILE = config_path
         STATE_FILE = state_path
         try:
-            v1_payload = json.dumps(
+            v1_payload = orjson.dumps(
                 [
                     {
                         "type": "interactive",
@@ -635,7 +602,7 @@ def _run_tests() -> None:
                     },
                     {"type": "nanobanana", "title": "Knowledge Map"},
                 ]
-            )
+            ).decode("utf-8")
             action_deliver(v1_payload, dry_run=True, memory_dir=tmpdir)
             state = load_json(state_path)
             _assert(

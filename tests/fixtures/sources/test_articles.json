@@ -1,0 +1,422 @@
+[
+  {
+    "title": "Test Article 1: Robotics Deep Dive",
+    "url": "https://example.com/articles/42/1",
+    "content": "This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. ",
+    "source": "arxiv",
+    "topics": [
+      "robotics",
+      "computer_vision"
+    ],
+    "quality_score": 5.0,
+    "relevance_score": 0.5,
+    "freshness_score": 0.8,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.6,
+    "actionability_score": 0.5,
+    "composite_score": 6.0,
+    "curation_reason": "Selected for robotics expertise",
+    "is_serendipity": true,
+    "is_echo": true,
+    "from_mesh": true
+  },
+  {
+    "title": "Test Article 2: Ai Deep Dive",
+    "url": "https://example.com/articles/42/2",
+    "content": "This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. ",
+    "source": "hackernews",
+    "topics": [
+      "ai",
+      "machine_learning"
+    ],
+    "quality_score": 6.0,
+    "relevance_score": 0.6,
+    "freshness_score": 0.75,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.7,
+    "actionability_score": 0.6,
+    "composite_score": 7.0,
+    "curation_reason": "Selected for ai expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 3: Llm Deep Dive",
+    "url": "https://example.com/articles/42/3",
+    "content": "This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. ",
+    "source": "blog",
+    "topics": [
+      "llm",
+      "transformers"
+    ],
+    "quality_score": 7.0,
+    "relevance_score": 0.7,
+    "freshness_score": 0.7000000000000001,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.8,
+    "actionability_score": 0.7,
+    "composite_score": 8.0,
+    "curation_reason": "Selected for llm expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 4: Rust Deep Dive",
+    "url": "https://example.com/articles/42/4",
+    "content": "This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. ",
+    "source": "research",
+    "topics": [
+      "rust",
+      "python"
+    ],
+    "quality_score": 8.0,
+    "relevance_score": 0.8,
+    "freshness_score": 0.65,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.9,
+    "actionability_score": 0.8,
+    "composite_score": 9.0,
+    "curation_reason": "Selected for rust expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 5: Quantum Computing Deep Dive",
+    "url": "https://example.com/articles/42/5",
+    "content": "This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. ",
+    "source": "arxiv",
+    "topics": [
+      "quantum_computing",
+      "bioinformatics"
+    ],
+    "quality_score": 9.0,
+    "relevance_score": 0.9,
+    "freshness_score": 0.6000000000000001,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.6,
+    "actionability_score": 0.9,
+    "composite_score": 6.0,
+    "curation_reason": "Selected for quantum_computing expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 6: Robotics Deep Dive",
+    "url": "https://example.com/articles/42/6",
+    "content": "This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. ",
+    "source": "hackernews",
+    "topics": [
+      "robotics",
+      "computer_vision"
+    ],
+    "quality_score": 5.0,
+    "relevance_score": 0.5,
+    "freshness_score": 0.55,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.7,
+    "actionability_score": 0.5,
+    "composite_score": 7.0,
+    "curation_reason": "Selected for robotics expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 7: Ai Deep Dive",
+    "url": "https://example.com/articles/42/7",
+    "content": "This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. ",
+    "source": "blog",
+    "topics": [
+      "ai",
+      "machine_learning"
+    ],
+    "quality_score": 6.0,
+    "relevance_score": 0.6,
+    "freshness_score": 0.5,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.8,
+    "actionability_score": 0.6,
+    "composite_score": 8.0,
+    "curation_reason": "Selected for ai expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 8: Llm Deep Dive",
+    "url": "https://example.com/articles/42/8",
+    "content": "This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. ",
+    "source": "research",
+    "topics": [
+      "llm",
+      "transformers"
+    ],
+    "quality_score": 7.0,
+    "relevance_score": 0.7,
+    "freshness_score": 0.45,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.9,
+    "actionability_score": 0.7,
+    "composite_score": 9.0,
+    "curation_reason": "Selected for llm expertise",
+    "is_serendipity": true,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 9: Rust Deep Dive",
+    "url": "https://example.com/articles/42/9",
+    "content": "This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. ",
+    "source": "arxiv",
+    "topics": [
+      "rust",
+      "python"
+    ],
+    "quality_score": 8.0,
+    "relevance_score": 0.8,
+    "freshness_score": 0.4,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.6,
+    "actionability_score": 0.8,
+    "composite_score": 6.0,
+    "curation_reason": "Selected for rust expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 10: Quantum Computing Deep Dive",
+    "url": "https://example.com/articles/42/10",
+    "content": "This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. ",
+    "source": "hackernews",
+    "topics": [
+      "quantum_computing",
+      "bioinformatics"
+    ],
+    "quality_score": 9.0,
+    "relevance_score": 0.9,
+    "freshness_score": 0.35000000000000003,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.7,
+    "actionability_score": 0.9,
+    "composite_score": 7.0,
+    "curation_reason": "Selected for quantum_computing expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 11: Robotics Deep Dive",
+    "url": "https://example.com/articles/42/11",
+    "content": "This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. ",
+    "source": "blog",
+    "topics": [
+      "robotics",
+      "computer_vision"
+    ],
+    "quality_score": 5.0,
+    "relevance_score": 0.5,
+    "freshness_score": 0.8,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.8,
+    "actionability_score": 0.5,
+    "composite_score": 8.0,
+    "curation_reason": "Selected for robotics expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 12: Ai Deep Dive",
+    "url": "https://example.com/articles/42/12",
+    "content": "This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. ",
+    "source": "research",
+    "topics": [
+      "ai",
+      "machine_learning"
+    ],
+    "quality_score": 6.0,
+    "relevance_score": 0.6,
+    "freshness_score": 0.75,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.9,
+    "actionability_score": 0.6,
+    "composite_score": 9.0,
+    "curation_reason": "Selected for ai expertise",
+    "is_serendipity": false,
+    "is_echo": true,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 13: Llm Deep Dive",
+    "url": "https://example.com/articles/42/13",
+    "content": "This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. ",
+    "source": "arxiv",
+    "topics": [
+      "llm",
+      "transformers"
+    ],
+    "quality_score": 7.0,
+    "relevance_score": 0.7,
+    "freshness_score": 0.7000000000000001,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.6,
+    "actionability_score": 0.7,
+    "composite_score": 6.0,
+    "curation_reason": "Selected for llm expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 14: Rust Deep Dive",
+    "url": "https://example.com/articles/42/14",
+    "content": "This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. ",
+    "source": "hackernews",
+    "topics": [
+      "rust",
+      "python"
+    ],
+    "quality_score": 8.0,
+    "relevance_score": 0.8,
+    "freshness_score": 0.65,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.7,
+    "actionability_score": 0.8,
+    "composite_score": 7.0,
+    "curation_reason": "Selected for rust expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": true
+  },
+  {
+    "title": "Test Article 15: Quantum Computing Deep Dive",
+    "url": "https://example.com/articles/42/15",
+    "content": "This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. ",
+    "source": "blog",
+    "topics": [
+      "quantum_computing",
+      "bioinformatics"
+    ],
+    "quality_score": 9.0,
+    "relevance_score": 0.9,
+    "freshness_score": 0.6000000000000001,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.8,
+    "actionability_score": 0.9,
+    "composite_score": 8.0,
+    "curation_reason": "Selected for quantum_computing expertise",
+    "is_serendipity": true,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 16: Robotics Deep Dive",
+    "url": "https://example.com/articles/42/16",
+    "content": "This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. This is a comprehensive analysis of robotics. ",
+    "source": "research",
+    "topics": [
+      "robotics",
+      "computer_vision"
+    ],
+    "quality_score": 5.0,
+    "relevance_score": 0.5,
+    "freshness_score": 0.55,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.9,
+    "actionability_score": 0.5,
+    "composite_score": 9.0,
+    "curation_reason": "Selected for robotics expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 17: Ai Deep Dive",
+    "url": "https://example.com/articles/42/17",
+    "content": "This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. This is a comprehensive analysis of ai. ",
+    "source": "arxiv",
+    "topics": [
+      "ai",
+      "machine_learning"
+    ],
+    "quality_score": 6.0,
+    "relevance_score": 0.6,
+    "freshness_score": 0.5,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.6,
+    "actionability_score": 0.6,
+    "composite_score": 6.0,
+    "curation_reason": "Selected for ai expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 18: Llm Deep Dive",
+    "url": "https://example.com/articles/42/18",
+    "content": "This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. This is a comprehensive analysis of llm. ",
+    "source": "hackernews",
+    "topics": [
+      "llm",
+      "transformers"
+    ],
+    "quality_score": 7.0,
+    "relevance_score": 0.7,
+    "freshness_score": 0.45,
+    "depth_score": 0.8999999999999999,
+    "uniqueness_score": 0.7,
+    "actionability_score": 0.7,
+    "composite_score": 7.0,
+    "curation_reason": "Selected for llm expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 19: Rust Deep Dive",
+    "url": "https://example.com/articles/42/19",
+    "content": "This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. This is a comprehensive analysis of rust. ",
+    "source": "blog",
+    "topics": [
+      "rust",
+      "python"
+    ],
+    "quality_score": 8.0,
+    "relevance_score": 0.8,
+    "freshness_score": 0.4,
+    "depth_score": 0.7,
+    "uniqueness_score": 0.8,
+    "actionability_score": 0.8,
+    "composite_score": 8.0,
+    "curation_reason": "Selected for rust expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  },
+  {
+    "title": "Test Article 20: Quantum Computing Deep Dive",
+    "url": "https://example.com/articles/42/20",
+    "content": "This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. This is a comprehensive analysis of quantum computing. ",
+    "source": "research",
+    "topics": [
+      "quantum_computing",
+      "bioinformatics"
+    ],
+    "quality_score": 9.0,
+    "relevance_score": 0.9,
+    "freshness_score": 0.35000000000000003,
+    "depth_score": 0.7999999999999999,
+    "uniqueness_score": 0.9,
+    "actionability_score": 0.9,
+    "composite_score": 9.0,
+    "curation_reason": "Selected for quantum_computing expertise",
+    "is_serendipity": false,
+    "is_echo": false,
+    "from_mesh": false
+  }
+]

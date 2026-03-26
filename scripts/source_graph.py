@@ -19,23 +19,14 @@ Actions:
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-
-# ══════════════════════════════════════════════════════════════
-# PATHS
-# ══════════════════════════════════════════════════════════════
+from optimized_io import load_json, save_json, timestamp
 
 SEMANTIC_FILE = os.path.expanduser("~/memory/the_only_semantic.json")
-
-
-# ══════════════════════════════════════════════════════════════
-# CONSTANTS
-# ══════════════════════════════════════════════════════════════
 
 FRESHNESS_FACTOR: dict[str, float] = {
     "hourly": 1.0,
@@ -62,33 +53,6 @@ DEFAULT_SOURCE_PROFILE: dict = {
     "redundancy_with": {},
     "last_evaluated": "",
 }
-
-
-# ══════════════════════════════════════════════════════════════
-# JSON I/O HELPERS
-# ══════════════════════════════════════════════════════════════
-
-
-def load_json(path: str, default: dict | None = None) -> dict:
-    """Load JSON from *path*, returning *default* on missing/corrupt files."""
-    if default is None:
-        default = {}
-    if os.path.exists(path):
-        try:
-            with open(path, "r") as f:
-                result = json.load(f)
-                if isinstance(result, dict):
-                    return result
-        except json.JSONDecodeError as e:
-            print(f"⚠️  {path} is not valid JSON: {e}", file=sys.stderr)
-    return default
-
-
-def save_json(path: str, data: dict) -> None:
-    """Write *data* as pretty-printed JSON to *path*."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 # ══════════════════════════════════════════════════════════════

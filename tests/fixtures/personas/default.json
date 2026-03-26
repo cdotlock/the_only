@@ -1,0 +1,26 @@
+{
+  "name": "default",
+  "description": "Default balanced persona",
+  "fetch_strategy": {
+    "primary_sources": [
+      "arxiv",
+      "hackernews"
+    ],
+    "ratio": {
+      "tech": 50,
+      "serendipity": 20,
+      "research": 20,
+      "philosophy": 10
+    },
+    "synthesis_rules": [
+      "Balance depth and breadth"
+    ]
+  },
+  "reading_preferences": {
+    "preferred_length": "long-form",
+    "preferred_style": "deep analysis"
+  },
+  "delivery_channels": [
+    "discord"
+  ]
+}

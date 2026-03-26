@@ -1,0 +1,86 @@
+{
+  "arxiv": {
+    "quality_avg": 8.5,
+    "quality_scores": [
+      8.0,
+      8.5,
+      9.0,
+      8.5,
+      8.0
+    ],
+    "reliability": 0.95,
+    "consecutive_failures": 0,
+    "depth": "high",
+    "bias": "academic",
+    "freshness": "daily",
+    "exclusivity": 0.8,
+    "best_for": "cutting-edge research",
+    "redundancy_with": {
+      "semanticscholar": 0.3
+    },
+    "last_evaluated": "2026-03-20T10:00:00+00:00"
+  },
+  "hackernews": {
+    "quality_avg": 7.2,
+    "quality_scores": [
+      7.0,
+      7.5,
+      7.0,
+      7.5,
+      7.0
+    ],
+    "reliability": 0.9,
+    "consecutive_failures": 0,
+    "depth": "medium",
+    "bias": "practical",
+    "freshness": "hourly",
+    "exclusivity": 0.6,
+    "best_for": "industry trends",
+    "redundancy_with": {
+      "reddit": 0.4
+    },
+    "last_evaluated": "2026-03-20T10:00:00+00:00"
+  },
+  "semanticscholar": {
+    "quality_avg": 8.0,
+    "quality_scores": [
+      7.5,
+      8.0,
+      8.5,
+      8.0,
+      7.5
+    ],
+    "reliability": 0.85,
+    "consecutive_failures": 1,
+    "depth": "high",
+    "bias": "academic",
+    "freshness": "weekly",
+    "exclusivity": 0.7,
+    "best_for": "paper discovery",
+    "redundancy_with": {
+      "arxiv": 0.3
+    },
+    "last_evaluated": "2026-03-20T10:00:00+00:00"
+  },
+  "blog": {
+    "quality_avg": 6.5,
+    "quality_scores": [
+      6.0,
+      6.5,
+      7.0,
+      6.5,
+      6.0
+    ],
+    "reliability": 0.8,
+    "consecutive_failures": 2,
+    "depth": "medium",
+    "bias": "practical",
+    "freshness": "weekly",
+    "exclusivity": 0.5,
+    "best_for": "practical insights",
+    "redundancy_with": {
+      "hackernews": 0.2
+    },
+    "last_evaluated": "2026-03-20T10:00:00+00:00"
+  }
+}

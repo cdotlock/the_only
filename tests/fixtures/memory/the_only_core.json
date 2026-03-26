@@ -1,0 +1,32 @@
+{
+  "version": "2.0",
+  "identity": {
+    "current_focus": [
+      "ai",
+      "distributed_systems",
+      "rust"
+    ],
+    "professional_domain": "software_engineering",
+    "knowledge_level": {
+      "ai": "advanced",
+      "rust": "intermediate",
+      "distributed_systems": "advanced"
+    },
+    "values": [
+      "depth",
+      "novelty",
+      "actionability"
+    ],
+    "anti_interests": [
+      "celebrity_gossip",
+      "sports"
+    ]
+  },
+  "reading_preferences": {
+    "preferred_length": "long-form",
+    "preferred_style": "deep analysis",
+    "emotional_vibe": "intellectually curious"
+  },
+  "established_at": "2026-03-20T10:00:00+00:00",
+  "last_validated": "2026-03-27T10:00:00+00:00"
+}

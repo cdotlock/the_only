@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import json
 import math
 import os
 import re
@@ -28,21 +27,22 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 
+import orjson
 
-# ══════════════════════════════════════════════════════════════
-# PATHS
-# ══════════════════════════════════════════════════════════════
+from optimized_io import (
+    load_json,
+    save_json,
+    timestamp,
+    CoreMemory,
+    SemanticMemory,
+    EpisodicMemory,
+)
 
 CORE_FILE = os.path.expanduser("~/memory/the_only_core.json")
 SEMANTIC_FILE = os.path.expanduser("~/memory/the_only_semantic.json")
 EPISODIC_FILE = os.path.expanduser("~/memory/the_only_episodic.json")
 CONTEXT_MD = os.path.expanduser("~/memory/the_only_context.md")
 META_MD = os.path.expanduser("~/memory/the_only_meta.md")
-
-
-# ══════════════════════════════════════════════════════════════
-# DEFAULTS
-# ══════════════════════════════════════════════════════════════
 
 DEFAULT_CORE: dict = {
     "version": "2.0",
@@ -85,44 +85,12 @@ DEFAULT_EPISODIC: dict = {
     "entries": [],
 }
 
-# ══════════════════════════════════════════════════════════════
-# SIZE LIMITS
-# ══════════════════════════════════════════════════════════════
-
 SIZE_LIMITS: dict[str, int] = {
     "evolution_log": 20,
     "source_intelligence": 30,
     "emerging_interests": 10,
     "entries": 50,
 }
-
-
-# ══════════════════════════════════════════════════════════════
-# JSON I/O HELPERS
-# ══════════════════════════════════════════════════════════════
-
-
-def load_json(path: str, default: dict | None = None) -> dict:
-    """Load JSON from path, returning default on missing/corrupt file."""
-    if default is None:
-        default = {}
-    if os.path.exists(path):
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                result = json.load(f)
-                if isinstance(result, dict):
-                    return result
-                print(f"⚠️  {path} is not a JSON object", file=sys.stderr)
-        except json.JSONDecodeError as e:
-            print(f"⚠️  {path} is not valid JSON: {e}", file=sys.stderr)
-    return copy.deepcopy(default)
-
-
-def save_json(path: str, data: dict | list) -> None:
-    """Write JSON to path with pretty-printing, creating parent dirs."""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -957,8 +925,7 @@ def write_projections(
 
 
 def _now_iso() -> str:
-    """Return current UTC time as ISO 8601 string."""
-    return datetime.now(timezone.utc).isoformat()
+    return timestamp()
 
 
 def _variance(values: list[float]) -> float:
@@ -980,7 +947,7 @@ def action_read_all(memory_dir: str) -> None:
     all_data = mm.load_all()
 
     print("═══ Core ═══")
-    print(json.dumps(all_data["core"], indent=2, ensure_ascii=False))
+    print(orjson.dumps(all_data["core"], option=orjson.OPT_INDENT_2).decode("utf-8"))
     print()
     print("═══ Semantic ═══")
     sem = all_data["semantic"]

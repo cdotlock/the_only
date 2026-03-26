@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 
+from optimized_io import load_json, save_json, timestamp
+
 
 # ---------------------------------------------------------------------------
 # Enums

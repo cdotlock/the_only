@@ -1,0 +1,2205 @@
+{
+  "version": "2.0",
+  "entries": [
+    {
+      "ritual_id": 1,
+      "timestamp": "2026-03-20T10:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 1"
+    },
+    {
+      "ritual_id": 2,
+      "timestamp": "2026-03-20T11:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 2"
+    },
+    {
+      "ritual_id": 3,
+      "timestamp": "2026-03-20T12:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 3"
+    },
+    {
+      "ritual_id": 4,
+      "timestamp": "2026-03-20T13:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 4"
+    },
+    {
+      "ritual_id": 5,
+      "timestamp": "2026-03-20T14:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 5"
+    },
+    {
+      "ritual_id": 6,
+      "timestamp": "2026-03-20T15:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 6"
+    },
+    {
+      "ritual_id": 7,
+      "timestamp": "2026-03-20T16:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 7"
+    },
+    {
+      "ritual_id": 8,
+      "timestamp": "2026-03-20T17:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 8"
+    },
+    {
+      "ritual_id": 9,
+      "timestamp": "2026-03-20T18:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 9"
+    },
+    {
+      "ritual_id": 10,
+      "timestamp": "2026-03-20T19:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 10"
+    },
+    {
+      "ritual_id": 11,
+      "timestamp": "2026-03-20T20:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 11"
+    },
+    {
+      "ritual_id": 12,
+      "timestamp": "2026-03-20T21:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 12"
+    },
+    {
+      "ritual_id": 13,
+      "timestamp": "2026-03-20T22:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 13"
+    },
+    {
+      "ritual_id": 14,
+      "timestamp": "2026-03-20T23:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 14"
+    },
+    {
+      "ritual_id": 15,
+      "timestamp": "2026-03-21T00:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 15"
+    },
+    {
+      "ritual_id": 16,
+      "timestamp": "2026-03-21T01:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 16"
+    },
+    {
+      "ritual_id": 17,
+      "timestamp": "2026-03-21T02:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 17"
+    },
+    {
+      "ritual_id": 18,
+      "timestamp": "2026-03-21T03:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 18"
+    },
+    {
+      "ritual_id": 19,
+      "timestamp": "2026-03-21T04:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 19"
+    },
+    {
+      "ritual_id": 20,
+      "timestamp": "2026-03-21T05:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 20"
+    },
+    {
+      "ritual_id": 21,
+      "timestamp": "2026-03-21T06:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 21"
+    },
+    {
+      "ritual_id": 22,
+      "timestamp": "2026-03-21T07:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 22"
+    },
+    {
+      "ritual_id": 23,
+      "timestamp": "2026-03-21T08:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 23"
+    },
+    {
+      "ritual_id": 24,
+      "timestamp": "2026-03-21T09:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 24"
+    },
+    {
+      "ritual_id": 25,
+      "timestamp": "2026-03-21T10:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 25"
+    },
+    {
+      "ritual_id": 26,
+      "timestamp": "2026-03-21T11:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 26"
+    },
+    {
+      "ritual_id": 27,
+      "timestamp": "2026-03-21T12:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 27"
+    },
+    {
+      "ritual_id": 28,
+      "timestamp": "2026-03-21T13:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 28"
+    },
+    {
+      "ritual_id": 29,
+      "timestamp": "2026-03-21T14:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 29"
+    },
+    {
+      "ritual_id": 30,
+      "timestamp": "2026-03-21T15:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 30"
+    },
+    {
+      "ritual_id": 31,
+      "timestamp": "2026-03-21T16:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 31"
+    },
+    {
+      "ritual_id": 32,
+      "timestamp": "2026-03-21T17:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 32"
+    },
+    {
+      "ritual_id": 33,
+      "timestamp": "2026-03-21T18:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 33"
+    },
+    {
+      "ritual_id": 34,
+      "timestamp": "2026-03-21T19:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 34"
+    },
+    {
+      "ritual_id": 35,
+      "timestamp": "2026-03-21T20:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 35"
+    },
+    {
+      "ritual_id": 36,
+      "timestamp": "2026-03-21T21:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 36"
+    },
+    {
+      "ritual_id": 37,
+      "timestamp": "2026-03-21T22:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 37"
+    },
+    {
+      "ritual_id": 38,
+      "timestamp": "2026-03-21T23:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 38"
+    },
+    {
+      "ritual_id": 39,
+      "timestamp": "2026-03-22T00:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 39"
+    },
+    {
+      "ritual_id": 40,
+      "timestamp": "2026-03-22T01:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 40"
+    },
+    {
+      "ritual_id": 41,
+      "timestamp": "2026-03-22T02:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 41"
+    },
+    {
+      "ritual_id": 42,
+      "timestamp": "2026-03-22T03:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 42"
+    },
+    {
+      "ritual_id": 43,
+      "timestamp": "2026-03-22T04:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 43"
+    },
+    {
+      "ritual_id": 44,
+      "timestamp": "2026-03-22T05:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 44"
+    },
+    {
+      "ritual_id": 45,
+      "timestamp": "2026-03-22T06:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 45"
+    },
+    {
+      "ritual_id": 46,
+      "timestamp": "2026-03-22T07:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": true,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 0",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 46"
+    },
+    {
+      "ritual_id": 47,
+      "timestamp": "2026-03-22T08:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 8.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 1",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 47"
+    },
+    {
+      "ritual_id": 48,
+      "timestamp": "2026-03-22T09:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 9.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 2",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 48"
+    },
+    {
+      "ritual_id": 49,
+      "timestamp": "2026-03-22T10:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 6.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 1,
+      "search_queries": 3,
+      "narrative_theme": "Theme 3",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 49"
+    },
+    {
+      "ritual_id": 50,
+      "timestamp": "2026-03-22T11:00:00+00:00",
+      "items_delivered": 5,
+      "avg_quality_score": 7.0,
+      "categories": {
+        "ai": 2,
+        "rust": 1,
+        "distributed_systems": 1,
+        "serendipity": 1
+      },
+      "engagement": {
+        "item_1": {
+          "score": 4,
+          "signal": "reply",
+          "topic": "ai"
+        },
+        "item_2": {
+          "score": 3,
+          "signal": "reaction",
+          "topic": "rust"
+        },
+        "item_3": {
+          "score": 2,
+          "signal": "viewed",
+          "topic": "distributed_systems"
+        }
+      },
+      "sources_used": [
+        "arxiv",
+        "hackernews"
+      ],
+      "sources_failed": [],
+      "echo_fulfilled": false,
+      "network_items": 0,
+      "search_queries": 3,
+      "narrative_theme": "Theme 4",
+      "synthesis_styles": {
+        "deep_analysis": 3,
+        "comparison": 1,
+        "surprise": 1
+      },
+      "self_notes": "Note for ritual 50"
+    }
+  ]
+}
