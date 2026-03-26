@@ -91,12 +91,11 @@ Execute in order:
 1. **Search Thesis** — 5 questions before any search (what they care about, world context, blind spots, what you gave last time, what gap remains).
 2. **Source Pre-Ranking** — Consult `semantic.json` Source Intelligence Graph. Rank by `expected_yield = quality_avg * reliability * (1 - redundancy)`. Skip low-yield sources.
 3. **Adaptive Search** — 6-10 purposeful searches. Start broad (3-4 queries), follow promising threads (2-3 depth queries), pivot when exhausted, contrarian probe if dominant narrative emerges.
-4. **Six Layers**: real-time pulse, deep dive, serendipity, echo fulfillment, local knowledge, mesh feed.
-5. **Full-Read Evaluation**: Top 15 candidates read fully — not just headlines — before scoring.
-6. **Quality Scoring** (6 dimensions): Relevance 25%, Freshness 15%, Depth 20%, Uniqueness 15%, Actionability 10%, Insight Density 15%.
-7. **Graph-Level Modifiers**: narrative tension bonus (+0.5), cross-domain bonus (+0.3), redundancy penalty (-1.0 if overlap > 0.7), source diversity penalty (-0.5 if 3+ from same source).
-8. Each selected item gets composite score + `Why this:` curation reason.
-9. Mesh items: merge into pool, re-score locally. Respect `mesh.network_content_ratio`.
+4. **Six Layers**: real-time pulse, deep dive, serendipity, echo fulfillment, local knowledge, mesh feed. Source pool and scraping recipes in `references/information_gathering_v2.md` § 5.
+5. **Full-Read Evaluation**: Top 15 candidates read fully — not just headlines — before scoring. Triage first (remove 404s/paywalls), then read.
+6. **Quality Scoring** (6 dimensions with weights) and **Graph-Level Modifiers**: see `references/information_gathering_v2.md` §§ 7–8.
+7. Each selected item gets composite score + `Why this:` curation reason.
+8. Mesh items: merge into pool, re-score locally. Respect `mesh.network_content_ratio`.
 
 GATE 1: `items_per_ritual` items selected. Each scored with curation reason. No redundancy.
 
@@ -158,7 +157,7 @@ Follow `references/delivery_and_checklist.md` — ritual is not complete until c
 
 1. Deliver all items via configured channels.
 2. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action social_report` — append warm 3-5 line digest as final message.
-3. **Archive update**: `python3 scripts/knowledge_archive.py` — add each article with metadata (title, topics, score, source, timestamp). Link related articles bidirectionally.
+3. **Archive update**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` — add each delivered article (id, title, topics, quality_score, source, arc_position, html_path, delivered_at). Automatically links related articles by topic overlap.
 4. Execute post-delivery checklist.
 
 GATE 5: Delivery checklist passed. Archive index updated. Social digest included if mesh enabled.
@@ -247,11 +246,12 @@ Collaborative synthesis features: Exploration Request (Kind 1118), Synthesis Con
 Every delivered article is indexed permanently in `the_only_archive/index.json`.
 
 **Operations**:
-- **Index**: After each ritual — title, topics, score, engagement, source, style, timestamp.
-- **Link**: Bidirectional linking when topic overlap > 0.5.
+- **Index**: `python3 scripts/knowledge_archive.py --action index --data '[{...}]'` — indexes articles, auto-links related entries (topic overlap > 0.5).
 - **Search**: `python3 scripts/knowledge_archive.py --action search --query "X"` or `--topics "a,b"`
 - **Digest**: `python3 scripts/knowledge_archive.py --action summary --year YYYY --month M`
 - **Cleanup**: `python3 scripts/knowledge_archive.py --action cleanup --days 14` — removes old HTML, preserves archive metadata.
+
+See `references/delivery_and_checklist.md` for the full index data format.
 
 **User commands**:
 - "Show me your archive" / "What have you curated?" — summary of archive contents.

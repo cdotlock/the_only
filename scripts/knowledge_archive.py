@@ -2,15 +2,15 @@
 """
 The ONLY — Knowledge Archive
 Persistent index of all curated articles across rituals.
-Supports search, inter-article linking, monthly summaries,
+Supports indexing, search, inter-article linking, monthly summaries,
 and HTML cleanup with retention policy.
 
 Actions:
+  index   — Add articles to archive and auto-link related entries
   search  — Search entries by query, topics, date range
   summary — Generate monthly digest
   cleanup — Remove stale HTML files (preserves index metadata)
   status  — Print archive statistics
-  test    — Run self-tests
 """
 
 from __future__ import annotations
@@ -395,9 +395,15 @@ def main() -> None:
     )
     parser.add_argument(
         "--action",
-        choices=["search", "summary", "cleanup", "status"],
+        choices=["index", "search", "summary", "cleanup", "status"],
         required=True,
         help="Action to perform",
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        default=None,
+        help="JSON array of article dicts for --action index",
     )
     parser.add_argument("--query", type=str, default=None, help="Text search query")
     parser.add_argument(
@@ -423,7 +429,27 @@ def main() -> None:
 
     archive = KnowledgeArchive(archive_dir=args.archive_dir)
 
-    if args.action == "search":
+    if args.action == "index":
+        if not args.data:
+            print("❌ --data required for index", file=sys.stderr)
+            sys.exit(1)
+        try:
+            raw = json.loads(args.data)
+        except json.JSONDecodeError as exc:
+            print(f"❌ Invalid JSON: {exc}", file=sys.stderr)
+            sys.exit(1)
+        if not isinstance(raw, list):
+            print("❌ --data must be a JSON array of article objects", file=sys.stderr)
+            sys.exit(1)
+        entries = [ArchiveEntry.from_dict(item) for item in raw]
+        before = archive.total_count()
+        archive.append(entries)
+        new_links = archive.auto_link(entries)
+        after = archive.total_count()
+        added = after - before
+        print(f"📚 Indexed {added} article(s). {new_links} new link(s) created.")
+
+    elif args.action == "search":
         topics = [t.strip() for t in args.topics.split(",")] if args.topics else None
         results = archive.search(
             query=args.query,

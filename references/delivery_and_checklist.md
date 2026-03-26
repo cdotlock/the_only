@@ -113,7 +113,7 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 - [ ] **Payload matches artifacts**: One entry per artifact. Count = `items_per_ritual`.
 - [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called (or Discord native `message` tool if `webhooks.discord == "native"`).
 - [ ] **Social digest**: If Mesh enabled, social digest appended as final message (or skipped silently if no activity).
-- [ ] **Index updated**: Append new articles to `{canvas_dir}/index.html` so all past articles remain accessible.
+- [ ] **Archive indexed**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` called with all delivered articles (title, topics, quality_score, source, arc_position, html_path, delivered_at). Auto-links related articles.
 
 ---
 
@@ -133,3 +133,32 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 |---|---|---|
 | `interactive` | `url`, `title` | Article URL (public tunnel URL preferred, localhost fallback) |
 | `social_digest` | `text` | Mesh social report — final message, Mesh only |
+
+### `knowledge_archive.py` — Article Archive
+
+```bash
+# Index delivered articles (run after every ritual)
+python3 scripts/knowledge_archive.py --action index --data '[
+  {
+    "id": "20260326_1400_001",
+    "title": "Article Title",
+    "topics": ["topic1", "topic2"],
+    "quality_score": 8.5,
+    "source": "arxiv",
+    "arc_position": "Deep Dive",
+    "ritual_id": "20260326_1400",
+    "html_path": "~/.openclaw/canvas/the_only_20260326_1400_001.html",
+    "delivered_at": "2026-03-26T14:00:00Z"
+  }
+]'
+
+# Search archive
+python3 scripts/knowledge_archive.py --action search --topics "distributed systems"
+python3 scripts/knowledge_archive.py --action search --query "consensus"
+
+# Monthly digest
+python3 scripts/knowledge_archive.py --action summary --year 2026 --month 3
+
+# Cleanup stale HTML (preserves index metadata)
+python3 scripts/knowledge_archive.py --action cleanup --days 14
+```
