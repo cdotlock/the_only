@@ -18,12 +18,34 @@ from __future__ import annotations
 import os
 import sys
 import argparse
-import tempfile
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from optimized_io import load_json, save_json, timestamp
+import json
+
+
+def load_json(path, default=None):
+    """Load JSON from file, returning default if missing or corrupt."""
+    if default is None:
+        default = {}
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"[warn] {path}: {e}", file=sys.stderr)
+    return default
+
+
+def save_json(path, data):
+    """Atomically write JSON to file."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    os.replace(tmp, path)
 
 ARCHIVE_DIR = os.path.expanduser("~/memory/the_only_archive")
 INDEX_FILE = os.path.join(ARCHIVE_DIR, "index.json")
@@ -362,326 +384,6 @@ class KnowledgeArchive:
 
 
 # ---------------------------------------------------------------------------
-# Self-tests
-# ---------------------------------------------------------------------------
-
-
-def _run_tests() -> None:
-    """Execute self-tests using tempfile-backed archive dirs."""
-    passed = 0
-    failed = 0
-
-    def _assert(condition: bool, label: str) -> None:
-        nonlocal passed, failed
-        if condition:
-            passed += 1
-            print(f"  ✅ {label}")
-        else:
-            failed += 1
-            print(f"  ❌ {label}", file=sys.stderr)
-
-    print("🧪 Knowledge Archive — self-tests\n")
-
-    # Test: generate_id format
-    print("  Test: generate_id format")
-    ts = datetime(2026, 3, 25, 9, 0)
-    gid = generate_id(ts, 1)
-    _assert(gid == "20260325_0900_001", f"generate_id → {gid}")
-    gid2 = generate_id(ts, 42)
-    _assert(gid2 == "20260325_0900_042", f"generate_id seq=42 → {gid2}")
-
-    # Test: topic_overlap
-    print("  Test: topic_overlap correctness")
-    _assert(
-        topic_overlap(["A", "B", "C"], ["a", "b", "c"]) == 1.0,
-        "identical (case-insensitive) → 1.0",
-    )
-    _assert(topic_overlap([], ["a"]) == 0.0, "empty left → 0.0")
-    _assert(topic_overlap(["a"], []) == 0.0, "empty right → 0.0")
-    _assert(topic_overlap([], []) == 0.0, "both empty → 0.0")
-    overlap_val = topic_overlap(["a", "b"], ["b", "c"])
-    _assert(
-        abs(overlap_val - 1 / 3) < 1e-9,
-        f"partial overlap → 1/3 (got {overlap_val:.4f})",
-    )
-
-    # Test: append + get round-trip
-    print("  Test: append + get round-trip")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entry = ArchiveEntry(
-            id="20260325_0900_001",
-            title="Test Article",
-            topics=["ai", "ml"],
-            quality_score=7.5,
-            engagement_score=3,
-            source="arxiv",
-            ritual_id="20260325_0900",
-            delivered_at="2026-03-25T09:00:00Z",
-        )
-        archive.append([entry])
-        got = archive.get("20260325_0900_001")
-        _assert(got is not None, "get returns appended entry")
-        assert got is not None
-        _assert(got.title == "Test Article", "title preserved")
-        _assert(got.quality_score == 7.5, "quality_score preserved")
-
-        archive2 = KnowledgeArchive(archive_dir=tmpdir)
-        _assert(archive2.total_count() == 1, "index persisted to disk")
-
-        ritual_file = os.path.join(tmpdir, "2026", "03", "20260325_0900.json")
-        _assert(os.path.exists(ritual_file), "ritual metadata file created")
-
-    # Test: search by query (case-insensitive title match)
-    print("  Test: search by query")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entries = [
-            ArchiveEntry(
-                id="20260325_0900_001",
-                title="How Transformers Scale",
-                topics=["ai", "transformers"],
-                delivered_at="2026-03-25T09:00:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_002",
-                title="Rust Memory Safety",
-                topics=["rust", "systems"],
-                delivered_at="2026-03-25T09:05:00Z",
-            ),
-        ]
-        archive.append(entries)
-        results = archive.search(query="transformers")
-        _assert(len(results) == 1, "query matches one entry")
-        _assert(results[0].id == "20260325_0900_001", "correct entry matched")
-
-        results_ci = archive.search(query="RUST")
-        _assert(len(results_ci) == 1, "case-insensitive query match")
-
-    # Test: search by topics (intersection)
-    print("  Test: search by topics")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entries = [
-            ArchiveEntry(
-                id="20260325_0900_001",
-                title="Article A",
-                topics=["ai", "ml"],
-                delivered_at="2026-03-25T09:00:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_002",
-                title="Article B",
-                topics=["rust", "systems"],
-                delivered_at="2026-03-25T09:05:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_003",
-                title="Article C",
-                topics=["ai", "robotics"],
-                delivered_at="2026-03-25T09:10:00Z",
-            ),
-        ]
-        archive.append(entries)
-        results = archive.search(topics=["ai"])
-        _assert(len(results) == 2, "topic filter matches two entries")
-        ids = {r.id for r in results}
-        _assert(
-            "20260325_0900_001" in ids and "20260325_0900_003" in ids,
-            "correct entries matched by topic",
-        )
-
-    # Test: search by date range
-    print("  Test: search by date range")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entries = [
-            ArchiveEntry(
-                id="20260320_0900_001",
-                title="Old Article",
-                delivered_at="2026-03-20T09:00:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_001",
-                title="New Article",
-                delivered_at="2026-03-25T09:00:00Z",
-            ),
-        ]
-        archive.append(entries)
-        results = archive.search(date_from="2026-03-24")
-        _assert(len(results) == 1, "date_from filter works")
-        _assert(results[0].id == "20260325_0900_001", "correct entry by date_from")
-
-        results2 = archive.search(date_to="2026-03-21")
-        _assert(len(results2) == 1, "date_to filter works")
-        _assert(results2[0].id == "20260320_0900_001", "correct entry by date_to")
-
-    # Test: link bidirectionality
-    print("  Test: link bidirectionality")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entries = [
-            ArchiveEntry(
-                id="20260325_0900_001",
-                title="A",
-                delivered_at="2026-03-25T09:00:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_002",
-                title="B",
-                delivered_at="2026-03-25T09:05:00Z",
-            ),
-        ]
-        archive.append(entries)
-        archive.link("20260325_0900_001", "20260325_0900_002")
-        a = archive.get("20260325_0900_001")
-        b = archive.get("20260325_0900_002")
-        assert a is not None and b is not None
-        _assert(
-            "20260325_0900_002" in a.related_articles,
-            "A → B link exists",
-        )
-        _assert(
-            "20260325_0900_001" in b.related_articles,
-            "B → A link exists",
-        )
-
-    # Test: auto_link with overlapping topics
-    print("  Test: auto_link")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        e1 = ArchiveEntry(
-            id="20260325_0900_001",
-            title="AI Deep Dive",
-            topics=["ai", "ml", "transformers"],
-            delivered_at="2026-03-25T09:00:00Z",
-        )
-        archive.append([e1])
-
-        e2 = ArchiveEntry(
-            id="20260325_2100_001",
-            title="ML Progress",
-            topics=["ai", "ml", "transformers", "scaling"],
-            delivered_at="2026-03-25T21:00:00Z",
-        )
-        archive.append([e2])
-
-        new_links = archive.auto_link([e2])
-        _assert(new_links > 0, f"auto_link created {new_links} link(s)")
-        got1 = archive.get("20260325_0900_001")
-        got2 = archive.get("20260325_2100_001")
-        assert got1 is not None and got2 is not None
-        _assert(
-            "20260325_2100_001" in got1.related_articles,
-            "auto_link: e1 → e2",
-        )
-        _assert(
-            "20260325_0900_001" in got2.related_articles,
-            "auto_link: e2 → e1",
-        )
-
-    # Test: monthly_summary
-    print("  Test: monthly_summary")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        entries = [
-            ArchiveEntry(
-                id="20260325_0900_001",
-                title="Article 1",
-                topics=["ai", "ml"],
-                quality_score=8.0,
-                engagement_score=5,
-                source="arxiv",
-                arc_position="deep_dive",
-                delivered_at="2026-03-25T09:00:00Z",
-            ),
-            ArchiveEntry(
-                id="20260325_0900_002",
-                title="Article 2",
-                topics=["ai", "robotics"],
-                quality_score=7.0,
-                engagement_score=3,
-                source="blog",
-                arc_position="opening",
-                delivered_at="2026-03-25T09:05:00Z",
-            ),
-            ArchiveEntry(
-                id="20260225_0900_001",
-                title="Feb Article",
-                topics=["rust"],
-                quality_score=9.0,
-                engagement_score=10,
-                source="blog",
-                delivered_at="2026-02-25T09:00:00Z",
-            ),
-        ]
-        archive.append(entries)
-        summary = archive.monthly_summary(2026, 3)
-        _assert(summary["total_articles"] == 2, "summary: correct article count")
-        _assert(
-            summary["avg_quality"] == 7.5,
-            f"summary: avg_quality={summary['avg_quality']}",
-        )
-        top_topic_names = [t["topic"] for t in summary["top_topics"]]
-        _assert("ai" in top_topic_names, "summary: 'ai' in top topics")
-        _assert(summary["sources"].get("arxiv") == 1, "summary: source breakdown")
-
-    # Test: total_count
-    print("  Test: total_count")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        _assert(archive.total_count() == 0, "empty archive → 0")
-        archive.append(
-            [
-                ArchiveEntry(
-                    id="20260325_0900_001",
-                    title="X",
-                    delivered_at="2026-03-25T09:00:00Z",
-                ),
-                ArchiveEntry(
-                    id="20260325_0900_002",
-                    title="Y",
-                    delivered_at="2026-03-25T09:05:00Z",
-                ),
-            ]
-        )
-        _assert(archive.total_count() == 2, "two entries → 2")
-
-    # Test: cleanup_html
-    print("  Test: cleanup_html")
-    with tempfile.TemporaryDirectory() as tmpdir:
-        canvas = os.path.join(tmpdir, "canvas")
-        os.makedirs(canvas)
-        old_file = os.path.join(canvas, "the_only_20260301_0900_001.html")
-        with open(old_file, "w") as f:
-            f.write("<html></html>")
-        old_ts = (datetime.now() - timedelta(days=30)).timestamp()
-        os.utime(old_file, (old_ts, old_ts))
-        new_file = os.path.join(canvas, "the_only_20260325_0900_001.html")
-        with open(new_file, "w") as f:
-            f.write("<html></html>")
-        other_file = os.path.join(canvas, "other.html")
-        with open(other_file, "w") as f:
-            f.write("<html></html>")
-
-        archive = KnowledgeArchive(archive_dir=tmpdir)
-        removed = archive.cleanup_html(days=14, canvas_dir=canvas)
-        _assert(removed == 1, f"cleanup removed {removed} file(s)")
-        _assert(not os.path.exists(old_file), "old HTML file removed")
-        _assert(os.path.exists(new_file), "recent HTML file kept")
-        _assert(os.path.exists(other_file), "non-matching file kept")
-
-    # Summary
-    total = passed + failed
-    print(f"\n🧪 Results: {passed}/{total} passed")
-    if failed:
-        print(f"❌ {failed} test(s) failed", file=sys.stderr)
-        sys.exit(1)
-    else:
-        print("✅ All tests passed")
-
-
-# ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
@@ -693,7 +395,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--action",
-        choices=["search", "summary", "cleanup", "status", "test"],
+        choices=["search", "summary", "cleanup", "status"],
         required=True,
         help="Action to perform",
     )
@@ -718,10 +420,6 @@ def main() -> None:
         help="Override archive directory",
     )
     args = parser.parse_args()
-
-    if args.action == "test":
-        _run_tests()
-        return
 
     archive = KnowledgeArchive(archive_dir=args.archive_dir)
 

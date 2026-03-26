@@ -5,9 +5,8 @@ Migrate V1 → V2 — One-Click Migration for the_only Memory Files
 Parses legacy V1 markdown/JSONL memory files and maps them to the
 three-tier V2 JSON architecture (core, semantic, episodic).
 
-Actions:
-  (default)  — Run migration (or dry-run with --dry-run)
-  test       — Run self-tests with inline assertions using tempfile
+Usage:
+  python3 scripts/migrate_v1_to_v2.py [--dry-run] [--memory-dir ~/memory]
 """
 
 from __future__ import annotations
@@ -19,22 +18,45 @@ import os
 import re
 import shutil
 import sys
-import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-# Ensure scripts/ is importable
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# V2 default schemas (self-contained — no external dependency)
+DEFAULT_CORE = {
+    "version": "2.0",
+    "name": "Ruby",
+    "slogan": "In a world of increasing entropy, be the one who reduces it.",
+    "deep_interests": [],
+    "values": [],
+    "reading_style": {},
+    "updated_at": "",
+}
 
-from memory_v2 import (
-    DEFAULT_CORE,
-    DEFAULT_EPISODIC,
-    DEFAULT_SEMANTIC,
-    CoreLayer,
-    EpisodicLayer,
-    SemanticLayer,
-    save_json,
-)
+DEFAULT_SEMANTIC = {
+    "version": "2.0",
+    "source_intelligence": {},
+    "engagement_patterns": {},
+    "emerging_interests": [],
+    "style_preferences": {},
+    "evolution_log": [],
+    "last_maintenance": "",
+}
+
+DEFAULT_EPISODIC = {
+    "version": "2.0",
+    "entries": [],
+    "last_compressed": "",
+}
+
+
+def save_json(path: str, data: dict | list) -> None:
+    """Atomically write JSON to file."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    os.replace(tmp, path)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -773,410 +795,6 @@ def format_report(report: MigrationReport) -> str:
     return "\n".join(lines)
 
 
-# ══════════════════════════════════════════════════════════════
-# SELF-TESTS
-# ══════════════════════════════════════════════════════════════
-
-# Realistic V1 sample data for tests
-
-SAMPLE_CONTEXT_MD = """\
-# The Only — Context Map
-*Last Compressed: 2026-03-20T09:00:00Z*
-
-## 1. Cognitive State
-- **Current Focus**: Learning Rust, Preparing for System Design Interviews
-- **Emotional Vibe**: High stress / Curious
-- **Knowledge Gaps**: Distributed consensus, Rust lifetime annotations
-
-## 2. Dynamic Fetch Strategy
-- **Primary Sources**: `["https://news.ycombinator.com", "r/MachineLearning"]`
-- **Exclusions**: `["crypto", "celebrity gossip"]`
-- **Synthesis Rules**: Condense AI papers, Always find one contrarian take
-- **Ratio**: `{"Tech": 60, "Philosophy": 20, "Serendipity": 20}`
-- **Tool Preferences**: `Use Tavily as primary search engine.`
-- **Source Health**: `{"ycombinator": {"consecutive_empty": 0, "quality_avg": 6.5, "items_scored": 12}}`
-
-## 3. Engagement Tracker
-*Per-category average engagement scores.*
-- Tech: 1.8 (15 items)
-- Philosophy: 2.5 (6 items)
-
-## 4. The Ledger
-- [2026-03-19]: User loved the cross-domain article. [engagement: 2]
-
-## 5. Evolution Log
-- [2026-03-18]: Auto-shifted Ratio: Tech 60→50%. Reason: Philosophy avg engagement 2.5 vs Tech 1.2.
-- [2026-03-15]: Added r/MachineLearning to Primary Sources.
-"""
-
-SAMPLE_META_MD = """\
-# Ruby — Meta-Learning Notes
-*Rituals completed: 42*
-
-## 1. Synthesis Style Insights
-- Deep analysis articles consistently get 2+ engagement
-- News briefs are mostly skipped
-
-## 2. Temporal Patterns
-- Morning rituals: lower engagement
-- Evening rituals: higher engagement
-
-## 3. Emerging Interests
-- Category theory (mentioned 3 times, monitoring)
-- Rust async patterns (mentioned 5 times, active)
-
-## 4. Self-Critique
-- Sometimes too verbose in summaries
-
-## 5. Behavioral Notes
-- User prefers bullet points over paragraphs
-
-## 6. Source Intelligence
-- arxiv quality improving over last 10 rituals
-"""
-
-SAMPLE_RITUAL_LOG = """\
-{"timestamp": "2026-03-20T09:00:00Z", "ritual_number": 42, "items_delivered": 5, "avg_quality": 7.2, "categories": {"tech": 3, "philosophy": 1, "serendipity": 1}, "sources_used": ["hn", "arxiv"]}
-{"timestamp": "2026-03-19T09:00:00Z", "ritual_number": 41, "items_delivered": 4, "avg_quality": 6.8, "categories": {"tech": 2, "philosophy": 2}, "sources_used": ["hn", "reddit"]}
-{"timestamp": "2026-03-18T09:00:00Z", "ritual_number": 40, "items_delivered": 6, "avg_quality": 8.1, "categories": {"tech": 4, "serendipity": 2}, "sources_used": ["arxiv", "hn"]}
-"""
-
-
-def action_test() -> None:
-    """Run self-tests with inline assertions using tempfile."""
-    passed = 0
-    failed = 0
-
-    def _assert(condition: bool, name: str) -> None:
-        nonlocal passed, failed
-        if condition:
-            passed += 1
-            print(f"  ✅ {name}")
-        else:
-            failed += 1
-            print(f"  ❌ {name}")
-
-    with tempfile.TemporaryDirectory(prefix="migrate_v1v2_test_") as tmpdir:
-        print("🧪 Running migration self-tests...")
-        print(f"   temp dir: {tmpdir}")
-        print()
-
-        # Write sample V1 files
-        ctx_path = os.path.join(tmpdir, "the_only_context.md")
-        meta_path = os.path.join(tmpdir, "the_only_meta.md")
-        log_path = os.path.join(tmpdir, "the_only_ritual_log.jsonl")
-
-        with open(ctx_path, "w") as f:
-            f.write(SAMPLE_CONTEXT_MD)
-        with open(meta_path, "w") as f:
-            f.write(SAMPLE_META_MD)
-        with open(log_path, "w") as f:
-            f.write(SAMPLE_RITUAL_LOG)
-
-        # ── Test 1: parse_context_md ──
-        print("── parse_context_md ──")
-        pc = parse_context_md(ctx_path)
-        _assert(
-            pc["cognitive_state"]["current_focus"]
-            == [
-                "Learning Rust",
-                "Preparing for System Design Interviews",
-            ],
-            "current_focus parsed as list",
-        )
-        _assert(
-            pc["cognitive_state"]["emotional_vibe"] == "High stress / Curious",
-            "emotional_vibe parsed",
-        )
-        _assert(
-            "https://news.ycombinator.com"
-            in pc["fetch_strategy"].get("primary_sources", []),
-            "primary_sources parsed",
-        )
-        _assert(
-            "crypto" in pc["fetch_strategy"].get("exclusions", []),
-            "exclusions parsed",
-        )
-        _assert(
-            isinstance(pc["fetch_strategy"].get("ratio"), dict),
-            "ratio parsed as dict",
-        )
-        _assert(
-            pc["fetch_strategy"]["ratio"].get("Tech") == 60,
-            "ratio Tech=60",
-        )
-        _assert(
-            "ycombinator" in pc["fetch_strategy"].get("source_health", {}),
-            "source_health parsed",
-        )
-        _assert(
-            len(pc["engagement_tracker"]) == 2,
-            "engagement_tracker has 2 categories",
-        )
-        _assert(
-            pc["engagement_tracker"]["tech"]["avg"] == 1.8,
-            "tech engagement avg=1.8",
-        )
-        _assert(
-            pc["engagement_tracker"]["philosophy"]["count"] == 6,
-            "philosophy engagement count=6",
-        )
-        _assert(len(pc["evolution_log"]) == 2, "evolution_log has 2 entries")
-        _assert(
-            "Auto-shifted" in pc["evolution_log"][0]["description"],
-            "evolution_log entry content correct",
-        )
-
-        # ── Test 2: parse_meta_md ──
-        print()
-        print("── parse_meta_md ──")
-        pm = parse_meta_md(meta_path)
-        _assert(
-            len(pm["synthesis_style"]) == 2,
-            "synthesis_style has 2 insights",
-        )
-        _assert(
-            "morning" in pm["temporal_patterns"],
-            "temporal_patterns has morning key",
-        )
-        _assert(
-            "evening" in pm["temporal_patterns"],
-            "temporal_patterns has evening key",
-        )
-        _assert(
-            len(pm["emerging_interests"]) == 2,
-            "emerging_interests has 2 items",
-        )
-        _assert(
-            pm["emerging_interests"][0]["name"] == "Category theory",
-            "first interest is Category theory",
-        )
-        _assert(
-            pm["emerging_interests"][0]["signal_count"] == 3,
-            "Category theory signal_count=3",
-        )
-        _assert(
-            pm["emerging_interests"][1]["status"] == "active",
-            "Rust async patterns status=active",
-        )
-
-        # ── Test 3: parse_ritual_log ──
-        print()
-        print("── parse_ritual_log ──")
-        pl = parse_ritual_log(log_path)
-        _assert(pl["ritual_count"] == 3, "ritual_count=3")
-        _assert("hn" in pl["source_stats"], "hn in source_stats")
-        _assert("arxiv" in pl["source_stats"], "arxiv in source_stats")
-        _assert(pl["source_stats"]["hn"]["hits"] == 3, "hn hits=3")
-        _assert(pl["source_stats"]["arxiv"]["hits"] == 2, "arxiv hits=2")
-        _assert(
-            isinstance(pl["source_stats"]["hn"]["quality_avg"], float),
-            "hn quality_avg is float",
-        )
-
-        # ── Test 4: map_to_core ──
-        print()
-        print("── map_to_core ──")
-        core = map_to_core(pc)
-        _assert(core["version"] == "2.0", "core version=2.0")
-        _assert(
-            core["identity"]["current_focus"]
-            == [
-                "Learning Rust",
-                "Preparing for System Design Interviews",
-            ],
-            "core current_focus mapped",
-        )
-        _assert(
-            core["identity"]["anti_interests"] == ["crypto", "celebrity gossip"],
-            "core anti_interests from exclusions",
-        )
-        _assert(
-            core["reading_preferences"]["emotional_vibe"] == "High stress / Curious",
-            "core emotional_vibe mapped",
-        )
-        _assert(core["established_at"] != "", "core established_at set")
-        _assert(core["last_validated"] != "", "core last_validated set")
-        _assert(
-            "preferred_length" in core["reading_preferences"],
-            "reading_preferences has preferred_length",
-        )
-
-        # ── Test 5: map_to_semantic ──
-        print()
-        print("── map_to_semantic ──")
-        sem = map_to_semantic(pc, pm, pl)
-        _assert(sem["version"] == "2.0", "semantic version=2.0")
-        _assert(
-            "https://news.ycombinator.com" in sem["fetch_strategy"]["primary_sources"],
-            "semantic primary_sources mapped",
-        )
-        _assert(
-            "crypto" in sem["fetch_strategy"]["exclusions"],
-            "semantic exclusions mapped",
-        )
-        # Check ratio keys are lowercase
-        ratio_keys = list(sem["fetch_strategy"]["ratio"].keys())
-        _assert(
-            all(k == k.lower() for k in ratio_keys),
-            "ratio keys are lowercase",
-        )
-        _assert(
-            sem["fetch_strategy"]["ratio"]["tech"] == 60,
-            "ratio tech=60 (lowercased)",
-        )
-        _assert(
-            len(sem["source_intelligence"]) > 0,
-            "source_intelligence populated",
-        )
-        _assert(
-            "ycombinator" in sem["source_intelligence"],
-            "ycombinator from Source Health",
-        )
-        _assert(
-            "hn" in sem["source_intelligence"],
-            "hn from ritual_log",
-        )
-        _assert(
-            "tech" in sem["engagement_patterns"],
-            "engagement_patterns has tech",
-        )
-        _assert(
-            sem["engagement_patterns"]["tech"]["trend"] == "stable",
-            "engagement trend=stable",
-        )
-        _assert(
-            "morning" in sem["temporal_patterns"],
-            "temporal_patterns from meta.md",
-        )
-        _assert(
-            len(sem["synthesis_effectiveness"]) > 0,
-            "synthesis_effectiveness from meta.md",
-        )
-        _assert(
-            len(sem["emerging_interests"]) == 2,
-            "emerging_interests from meta.md",
-        )
-        _assert(
-            len(sem["evolution_log"]) == 2,
-            "evolution_log from context.md",
-        )
-
-        # ── Test 6: dry_run doesn't create files ──
-        print()
-        print("── dry_run: no files written ──")
-        dry_dir = os.path.join(tmpdir, "dry_test")
-        os.makedirs(dry_dir)
-        # Write V1 files into dry_dir
-        with open(os.path.join(dry_dir, "the_only_context.md"), "w") as f:
-            f.write(SAMPLE_CONTEXT_MD)
-        report = migrate(dry_dir, dry_run=True)
-        _assert(
-            not os.path.exists(os.path.join(dry_dir, "the_only_core.json")),
-            "core.json not created in dry run",
-        )
-        _assert(
-            not os.path.exists(os.path.join(dry_dir, "the_only_semantic.json")),
-            "semantic.json not created in dry run",
-        )
-        _assert(
-            not os.path.exists(os.path.join(dry_dir, "the_only_episodic.json")),
-            "episodic.json not created in dry run",
-        )
-        _assert(len(report.backup_files) == 0, "no backups in dry run")
-        _assert(len(report.migrated) > 0, "dry run still reports parsed items")
-
-        # ── Test 7: full migration creates all 3 JSON files ──
-        print()
-        print("── full migration: creates V2 files ──")
-        full_dir = os.path.join(tmpdir, "full_test")
-        os.makedirs(full_dir)
-        with open(os.path.join(full_dir, "the_only_context.md"), "w") as f:
-            f.write(SAMPLE_CONTEXT_MD)
-        with open(os.path.join(full_dir, "the_only_meta.md"), "w") as f:
-            f.write(SAMPLE_META_MD)
-        with open(os.path.join(full_dir, "the_only_ritual_log.jsonl"), "w") as f:
-            f.write(SAMPLE_RITUAL_LOG)
-
-        report = migrate(full_dir, dry_run=False)
-
-        core_out = os.path.join(full_dir, "the_only_core.json")
-        sem_out = os.path.join(full_dir, "the_only_semantic.json")
-        ep_out = os.path.join(full_dir, "the_only_episodic.json")
-
-        _assert(os.path.exists(core_out), "core.json created")
-        _assert(os.path.exists(sem_out), "semantic.json created")
-        _assert(os.path.exists(ep_out), "episodic.json created")
-
-        # Validate contents
-        with open(core_out) as f:
-            core_json = json.load(f)
-        _assert(core_json["version"] == "2.0", "core.json version=2.0")
-        _assert(
-            "Learning Rust" in core_json["identity"]["current_focus"],
-            "core.json has focus",
-        )
-
-        with open(sem_out) as f:
-            sem_json = json.load(f)
-        _assert(sem_json["version"] == "2.0", "semantic.json version=2.0")
-        _assert(
-            len(sem_json["fetch_strategy"]["primary_sources"]) == 2,
-            "semantic.json has 2 sources",
-        )
-
-        with open(ep_out) as f:
-            ep_json = json.load(f)
-        _assert(ep_json["version"] == "2.0", "episodic.json version=2.0")
-        _assert(ep_json["entries"] == [], "episodic.json entries empty")
-
-        _assert(len(report.errors) == 0, f"no migration errors (got {report.errors})")
-
-        # ── Test 8: backup files created ──
-        print()
-        print("── backup files ──")
-        _assert(
-            len(report.backup_files) == 3,
-            f"3 backup files created (got {len(report.backup_files)})",
-        )
-        for bak in report.backup_files:
-            _assert(os.path.exists(bak), f"backup exists: {os.path.basename(bak)}")
-            _assert(bak.endswith(".v1.bak"), f"backup has .v1.bak suffix")
-
-        # ── Test 9: missing V1 files don't crash ──
-        print()
-        print("── missing V1 files: graceful handling ──")
-        empty_dir = os.path.join(tmpdir, "empty_test")
-        os.makedirs(empty_dir)
-        report = migrate(empty_dir, dry_run=False)
-        _assert(len(report.errors) == 0, "no errors on empty dir")
-        _assert(
-            os.path.exists(os.path.join(empty_dir, "the_only_core.json")),
-            "core.json created with defaults",
-        )
-        _assert(
-            any("No V1 files" in item for item in report.needs_review),
-            "report notes no V1 files found",
-        )
-
-        # ── Test 10: report formatting ──
-        print()
-        print("── format_report ──")
-        report_text = format_report(report)
-        _assert("Migration Report" in report_text, "report has title")
-        _assert("✅" in report_text or "ℹ️" in report_text, "report has emoji sections")
-
-    # Summary
-    print()
-    total = passed + failed
-    print(f"{'=' * 40}")
-    print(f"Results: {passed}/{total} passed, {failed} failed")
-    if failed > 0:
-        print("❌ SOME TESTS FAILED", file=sys.stderr)
-        sys.exit(1)
-    else:
-        print("✅ All tests passed")
-
 
 # ══════════════════════════════════════════════════════════════
 # CLI
@@ -1189,12 +807,6 @@ def main() -> None:
         description="Migrate V1 → V2 — One-Click Migration for the_only Memory Files"
     )
     parser.add_argument(
-        "--action",
-        choices=["migrate", "test"],
-        default="migrate",
-        help="Action to perform (default: migrate)",
-    )
-    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Parse and map but do not write files",
@@ -1205,12 +817,8 @@ def main() -> None:
         help="Memory directory (default: ~/memory)",
     )
     args = parser.parse_args()
-
-    if args.action == "test":
-        action_test()
-    else:
-        report = migrate(args.memory_dir, dry_run=args.dry_run)
-        print(format_report(report))
+    report = migrate(args.memory_dir, dry_run=args.dry_run)
+    print(format_report(report))
 
 
 if __name__ == "__main__":

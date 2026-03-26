@@ -1,355 +1,171 @@
-# Information Gathering v2 — Adaptive Depth-First Strategy
+# Information Gathering v2 — Depth-First Strategy
 
-> **When to read this**: At the start of every Content Ritual, before gathering any information. This document governs how you find, fetch, evaluate, and select content in v2.
-
-> **⛔ STOP**: Before reading this document, confirm you have completed **Pre-Flight** (SKILL_v2.md Phase 0). You MUST have read all three memory tiers before proceeding. If you have not, go back now.
-
-**Contents**: Philosophy Change · Pre-Check · Phase 0: Search Thesis · Source Pre-Ranking · Adaptive Search · Six Layers · Depth-First Candidate Evaluation · Quality Scoring (6 Dimensions) · Graph-Level Modifiers · Narrative Arc Construction · Graceful Degradation · Expanded Source Pool · Source Intelligence Protocol
+> **Read this** at the start of Phase 1 (Information Gathering) of every Content Ritual.
+> For detailed source lists, fallback chains, and search recipes, see `references/information_gathering.md`.
 
 ---
 
-## Philosophy Change: v1 → v2
+## 1. Philosophy
+
+v1 scanned 100+ items by headline and scored by metadata. v2 deeply reads 20-30 items and scores by actual content. Quality comes from comprehension, not volume.
+
+A ritual of 5 deeply understood articles beats 5 well-headlined articles every time. The bottleneck was never discovery — it was comprehension.
 
 | v1 | v2 |
 |----|-----|
-| Scan 100+ items, score by metadata | Deeply evaluate 20–30 items, score by actual content |
-| Fixed 3-round search (breadth→depth→contrarian) | Adaptive search that follows promising threads |
-| All sources fetched equally | Source pre-ranking — skip low-yield sources |
-| Independent per-item scoring | Graph-level analysis: tension, redundancy, cross-domain |
+| Scan 100+ items, score by metadata | Deeply evaluate 20-30, score by content |
+| Fixed 3-round search | Adaptive thread-following search |
+| All sources fetched equally | Source pre-ranking by expected yield |
+| Independent per-item scoring | Graph-level modifiers: tension, redundancy, cross-domain |
 | Items delivered as a list | Items arranged in a narrative arc |
 
-**The core insight**: A ritual of 5 deeply understood articles beats a ritual of 5 well-headlined articles every time. The quality bottleneck in v1 was comprehension, not discovery.
-
 ---
 
-## Pre-Check: Runtime Tool Detection
+## 2. Source Pre-Ranking
 
-Same as v1 — check `capabilities` from config, verify search tools, handle fallbacks.
+Before searching, consult `source_intelligence` in `semantic.json`.
 
-**v2 addition**: Also check Source Intelligence in `the_only_semantic.json` for tool-specific performance data. If a tool's reliability has dropped below 0.5, warn and consider alternatives.
-
----
-
-## Phase 0: Search Thesis (Think Before You Search)
-
-Based on all three memory tiers + ritual log, answer these 5 questions silently:
-
-1. **What does the user care about right now?** — From `core.json` identity + `semantic.json` engagement patterns.
-2. **What's happening in the world that might affect them?** — Date, trends, recent events in their domains.
-3. **What angle would they NOT think of themselves?** — Cross-domain connection, contrarian take, historical parallel.
-4. **What did I give them last time?** — Check `ritual_log.jsonl` last 3 entries. Avoid repeating categories/sources/angles across consecutive rituals.
-5. **What deserves a counterargument?** — If the user's focus has a dominant narrative, actively seek dissent.
-
-**v2 addition**:
-6. **What narrative could connect today's items?** — Before searching, hypothesize a possible ritual theme. This doesn't constrain search but provides a lens for evaluation. Example: "The tension between automation and craft" could thread through AI scaling, artisan manufacturing, and a philosophy piece on human skill.
-
----
-
-## Source Pre-Ranking
-
-**v2 NEW**: Before fetching anything, rank sources by expected yield.
-
-### Procedure
-
-1. Read `source_intelligence` from `the_only_semantic.json`.
-2. For each Primary Source, calculate:
+**Calculate expected yield** for each known source:
 
 ```
-expected_yield(source) = quality_avg × reliability × freshness_factor × (1 - redundancy_with_fetched)
+expected_yield = quality_avg * reliability * (1 - redundancy_with_fetched)
 ```
 
-Where:
-- `quality_avg`: rolling average of composite scores from items selected from this source (0–10)
-- `reliability`: fraction of recent fetches that returned content (0–1)
-- `freshness_factor`: 1.0 if updated within fetch window, 0.5 if stale, 0.0 if unknown
-- `redundancy_with_fetched`: fraction of this source's recent output that overlaps with already-fetched sources (0–1)
+- `quality_avg` — rolling average of composite scores from past selections (0-10)
+- `reliability` — fraction of recent fetches that returned content (0-1)
+- `redundancy_with_fetched` — overlap with sources already queried (0-1)
 
-3. Rank sources by `expected_yield` descending.
-4. **Skip threshold**: Sources with `expected_yield < 2.0` are skipped for this ritual. They're not deleted — they'll be re-evaluated next time.
-5. **Mandatory inclusion**: At least 3 source categories must be represented (aggregator, blog, paper, serendipity). If pre-ranking would eliminate a whole category, force-include the best source from that category.
+**Rules:**
+- Skip sources with `expected_yield < 2.0` for this ritual (re-evaluated next time)
+- Ensure 3+ source categories are represented (aggregator, blog, paper, serendipity)
+- If pre-ranking would eliminate a whole category, force-include the best source from it
 
-### Why This Matters
-
-v1 fetched all primary sources equally — a source with reliability 0.3 got the same time as one with reliability 0.95. Pre-ranking ensures the ritual spends time on the sources most likely to yield valuable candidates, reducing total gathering time by 30–50%.
+Source intelligence informs where to look. It is not a mechanical filter — use judgment.
 
 ---
 
-## Adaptive Search Strategy
+## 3. Adaptive Search
 
-**v2 REPLACES the fixed 3-round search from v1.**
+Thread-following replaces fixed rounds. No mandatory minimums.
 
-### How It Works
+**Flow:**
 
-Instead of fixed rounds (breadth → depth → contrarian), v2 uses a thread-following approach:
+1. **Broad sweep** (3-4 searches) — Generated from your Search Thesis (user interests + current events + cross-domain angles). Scan results for promising threads.
 
-```
-START: Generate 3–4 broad queries from Search Thesis
-  │
-  ├─ Query 1 → Results → Scan for promising threads
-  ├─ Query 2 → Results → Scan for promising threads  
-  ├─ Query 3 → Results → Scan for promising threads
-  │
-  ▼
-EVALUATE: Which thread is most promising?
-  │
-  ├─ Thread A (most interesting) → 2–3 depth queries
-  │   ├─ Find primary source
-  │   ├─ Find author's other work  
-  │   └─ Find opposing viewpoint
-  │
-  ├─ Thread B (second) → 1–2 depth queries
-  │
-  ▼
-CHECK: Is a dominant narrative emerging?
-  │
-  ├─ Yes → 1–2 contrarian queries to challenge it
-  └─ No  → 1 more broad query to find unexpected angles
-  │
-  ▼
-DONE: 6–10 total searches, each with clear purpose
-```
+2. **Thread pursuit** (2-3 searches) — Follow the most interesting thread deeper: find the primary source, the author's other work, an opposing viewpoint.
 
-### Key Differences from v1
+3. **Contrarian probe** (1-2 searches, conditional) — Only if a dominant narrative has emerged. If results are already diverse, skip this.
 
-1. **No mandatory minimums**: If 6 searches yield excellent candidates, stop. Don't search to fill a quota.
-2. **Thread-following**: When a search reveals something promising, follow it deeper instead of moving to the next prescribed round.
-3. **Contrarian is conditional**: Only probe contrarian angles when a dominant narrative has emerged. If the results are already diverse, skip it.
-4. **Quality over quantity**: Each search should be crafted based on what you've already found, not generated from a template.
+**Total: 6-10 searches**, each with clear purpose. Stop when you have 15+ strong candidates. Don't search to fill a quota.
+
+**Key difference from v1:** Each search is crafted based on what you have already found, not generated from a template.
 
 ---
 
-## Six Layers of Information
+## 4. Six Layers
 
-### Layer 1: Real-Time Pulse
+Same framework as v1. See `references/information_gathering.md` for detailed source lists and fallback chains. v2 enhancements only:
 
-Same sources and fallback chain as v1. One key change:
+**Layer 1 — Real-Time Pulse:** After fetching from pre-ranked sources, apply a relevance pre-filter: "Would this plausibly be in this user's top 20 items today?" Drop everything else.
 
-**v2**: After fetching from pre-ranked sources, evaluate headlines against the Search Thesis. Only add items to the candidate pool if they pass a **relevance pre-filter**: "Would this plausibly be in this user's top 20 items today?" This prevents low-relevance headlines from cluttering the candidate pool.
+**Layer 2 — Deep Dive:** Use pre-ranked source order. Stop when you have 15+ candidates. Skip remaining low-yield sources.
 
-### Layer 2: Deep Dive
+**Layer 3 — Serendipity:** Serendipity floor remains 10%. Additionally draw topics from archive gaps (interests in `core.json` with 0 archive entries).
 
-For each top-ranked Primary Source, fetch and evaluate content.
+**Layer 4 — Echo Fulfillment:** Echoes from `echoes.txt` are top priority. Bypass scoring.
 
-**v2 change**: Instead of scraping all sources equally, use the pre-ranked source order. Stop when you have 15+ candidates in the pool. Skip remaining low-yield sources.
+**Layer 5 — Local Knowledge:** Unchanged from v1.
 
-### Layer 3: Serendipity Injection
-
-Same as v1 — at least 1 item from an unexpected domain. Serendipity floor: 10%.
-
-**v2 enhancement**: Serendipity topics now also drawn from:
-- Network questions (Kind 1115) that are outside the user's domains but intellectually interesting
-- Archive gaps: topics that appear in the user's `core.json` interests but have 0 articles in the archive
-
-### Layer 4: Echo Fulfillment
-
-Same as v1 — echoes.txt entries are #1 priority. Bypass scoring.
-
-### Layer 5: Local Knowledge Mining
-
-Same as v1 — workspace signals enrich context.
-
-### Layer 6: Mesh Network Feed
-
-Same as v1 — sync, re-score, merge, respect ratio cap.
-
-**v2 addition**: When mesh content overlaps with locally-gathered content, prefer the version with the most unique perspective (not necessarily the highest score). Attribution always preserved.
+**Layer 6 — Mesh Feed:** When mesh content overlaps with local content, prefer the version with the most unique perspective — not necessarily the highest score.
 
 ---
 
-## Depth-First Candidate Evaluation
+## 5. Depth-First Evaluation
 
-**v2 NEW**: The critical difference from v1.
+This is the critical v2 change. Read first, score second.
 
-### Procedure
+### Step 1: Triage (fast, metadata-based)
 
-After gathering 20–30 candidates from all six layers:
+Remove noise: error pages, 403/404, paywalls, login walls. Remove duplicate URLs. Remove items already in the archive (unless significant new information). Target: ~20 candidates remaining.
 
-1. **Initial triage** (fast, metadata-based):
-   - Remove obvious noise: error pages, 403/404, paywalls, login walls.
-   - Remove duplicates by URL.
-   - Remove items already in the archive (unless significant new information has emerged).
-   - Target: ~20 candidates remaining.
+### Step 2: Full Content Read (slow, comprehension-based)
 
-2. **Full content read** (slow, comprehension-based):
-   - For the top 15 candidates (by initial relevance estimate), **read the full source content**.
-   - Not skim. Read. Understand the argument, the evidence, the conclusion.
-   - For each, note:
-     - What is the core insight? (1 sentence)
-     - What is the evidence quality? (primary source, secondary, opinion)
-     - What is surprising or non-obvious about this?
-     - How does it connect to the user's current thinking?
-   - This step is what separates v2 from v1. v1 scored by metadata. v2 scores by understanding.
+For the top 15 candidates, **read the full source content**. Not skim — read. For each item, note:
 
-3. **Discard after reading**:
-   - If reading reveals the content is shallow, misleading, or redundant with a better candidate: discard.
-   - If the headline was better than the article: discard.
-   - Replace from remaining candidates if needed.
+- **Core insight** — What is the argument? (1 sentence)
+- **Evidence quality** — Primary source, secondary, or opinion?
+- **Surprise element** — What is non-obvious about this?
+- **User connection** — How does it link to the user's current thinking?
+
+### Step 3: Post-Read Discard
+
+If reading reveals the content is shallow, misleading, or redundant with a better candidate — discard. If the headline was better than the article — discard. Replace from remaining candidates if needed.
 
 ---
 
-## Quality Scoring — 6 Dimensions
+## 6. Quality Scoring
 
-For each candidate item that survived depth-first evaluation, assign scores (1–10):
+Score each surviving candidate on 6 dimensions (1-10) **after full read**:
 
-| Dimension | Weight | Description | 1 (low) | 10 (high) |
-|-----------|--------|-------------|---------|-----------|
-| **Relevance** | 25% | Connection to user's Cognitive State | No connection | Directly addresses Current Focus or Knowledge Gap |
-| **Freshness** | 15% | Recency and timeliness | Months old, widely covered | Breaking or very recent |
-| **Depth** | 20% | Quality of analysis (scored AFTER reading) | Shallow summary, press-release | Original analysis, novel insight, deep evidence |
-| **Uniqueness** | 15% | Rarity of perspective | Covered everywhere, commodity | Unique angle, contrarian take, niche source |
-| **Actionability** | 10% | Practical applicability | Pure theory, no takeaway | Concrete technique, tool, or framework |
-| **Insight Density** | 15% | Novel information per word | Padded, repetitive, filler-heavy | Every sentence carries new information |
+| Dimension | Weight | Definition |
+|-----------|--------|------------|
+| **Relevance** | 25% | Direct connection to user's cognitive state and current focus |
+| **Freshness** | 15% | Recency and timeliness — breaking or recent vs. months old |
+| **Depth** | 20% | Original analysis with novel insight vs. shallow summary |
+| **Uniqueness** | 15% | Rare perspective or contrarian angle vs. commodity coverage |
+| **Actionability** | 10% | Concrete technique, tool, or framework vs. pure theory |
+| **Insight Density** | 15% | Novel information per word — every sentence carries weight |
 
 **Composite score** = weighted sum of all 6 dimensions.
 
-### Scoring After Reading vs Before
-
-In v1, scoring happened before full content read. In v2, the Depth and Insight Density dimensions can only be scored accurately after reading the full content. This is why depth-first evaluation happens before scoring.
+Depth and Insight Density can only be scored accurately after reading. This is why evaluation precedes scoring.
 
 ---
 
-## Graph-Level Modifiers
+## 7. Graph-Level Modifiers
 
-After individual scoring, apply these modifiers to the candidate set:
+Applied to the candidate set after individual scoring:
 
-| Modifier | Value | Trigger |
-|----------|-------|---------|
-| **Narrative tension bonus** | +0.5 | Item contradicts or challenges another high-scoring item |
-| **Cross-domain bonus** | +0.3 | Item bridges two domains from user's `core.json` interests |
-| **Redundancy penalty** | -1.0 | Semantic similarity > 0.7 with another selected item |
-| **Source diversity penalty** | -0.5 | 3+ items already selected from the same source |
-| **Echo bonus** | +1.0 | Item fulfills an echo from echoes.txt |
-| **Archive freshness bonus** | +0.2 | Topic hasn't appeared in archive for 10+ rituals |
+| Modifier | Value | When |
+|----------|-------|------|
+| **Narrative tension** | +0.5 | Item contradicts or challenges another high-scoring item |
+| **Cross-domain** | +0.3 | Item bridges two of the user's interest domains |
+| **Redundancy** | -1.0 | Semantic similarity > 0.7 with another selected item |
+| **Source diversity** | -0.5 | 3+ items already selected from the same source |
+| **Echo bonus** | +1.0 | Item fulfills an echo from `echoes.txt` |
 
-### How to Detect Semantic Similarity
-
-Compare items by:
-1. Topic overlap (shared keywords and concepts)
-2. Source overlap (same underlying event or paper)
-3. Argument overlap (same thesis, different wording)
-
-If any two items score > 0.7 on these combined factors, they are semantically redundant. Keep the one with higher individual score; penalize the other.
+Semantic similarity = topic overlap + source overlap + argument overlap. When two items are redundant, keep the higher-scoring one.
 
 ---
 
-## Narrative Arc Construction
+## 8. Narrative Arc Assignment
 
-**v2 NEW**: Selected items are ordered to tell a story.
+Selected items are arranged into 5 positions. Assign based on content judgment, not formula.
 
-### Five Positions
+| Position | What makes a good fit |
+|----------|----------------------|
+| **Opening** | Timely, accessible, sets context. The reader should immediately understand why today's ritual matters. High relevance to current events + user focus. |
+| **Deep Dive** | The intellectual core. Longest, densest, most rewarding to engage with. Highest Depth + Insight Density scores. |
+| **Surprise** | Unexpected connection — a domain the user wouldn't have searched. Serendipity item, or highest cross-domain bonus. |
+| **Contrarian** | Challenges the assumptions of the other items. Highest narrative tension bonus, or a genuinely dissenting view. |
+| **Synthesis** | Ties the ritual together. Naturally connects to 2+ other items. The reader should feel closure. |
 
-| Position | Role | Selection Criteria |
-|----------|------|-------------------|
-| **Opening** | Sets the context for today's theme | Highest relevance to current events + user focus |
-| **Deep Dive** | The core intellectual payload | Highest Depth + Insight Density scores |
-| **Surprise** | The unexpected connection | Serendipity item, or highest Cross-Domain bonus |
-| **Contrarian** | Challenges assumptions | Highest Narrative Tension bonus, or dissenting view |
-| **Synthesis** | Ties the ritual together | Item that naturally connects to 2+ other items |
-
-### Arc Construction Algorithm
-
-1. Sort all selected items by composite score.
-2. Assign the Echo item to its natural position (usually Opening or Deep Dive).
-3. Assign the serendipity item to Surprise.
-4. For remaining positions, evaluate which item best fits each role.
-5. If no natural contrarian exists, assign the item with the most unique angle.
-6. The Synthesis position goes to the item that connects to the most other items.
-
-### What if items don't fit the arc?
-
-Not every ritual needs a perfect narrative arc. If the selected items don't naturally form a story, deliver them in score order with a brief transition between each. The arc is aspirational, not mandatory.
+**The arc is aspirational, not rigid.** If items don't naturally form a story, deliver them in score order with brief transitions. Not every ritual needs a perfect arc.
 
 ---
 
-## Graceful Degradation
+## 9. Pre-Synthesis Quality Gate
 
-Same as v1 with one addition:
+Before passing to Phase 2 (Synthesis), verify all of the following:
 
-| Available tools | Mode | Strategy |
-|---|---|---|
-| All tools + Mesh + Archive | **Full power v2** | All layers + depth-first + narrative arc + archive linking |
-| Search + URL (standard) | **Standard v2** | All layers, depth-first on top 10 candidates (reduced from 15) |
-| URL only (no search) | **Degraded** | Halt and prompt for search setup |
-| Nothing works | **Emergency** | Mine workspace + training knowledge, clearly label |
-
-**v2 addition**: In degraded modes, the narrative arc is relaxed (score-ordered delivery instead of arc-ordered).
-
----
-
-## Expanded Source Pool
-
-Same as v1. All sources remain available.
-
-**v2 addition**: Sources are annotated with Source Intelligence metadata when available. The pool is consulted during Source Vitality Check when replacing failed sources.
-
----
-
-## Source Intelligence Protocol
-
-### Building Source Intelligence
-
-After every ritual, update source intelligence in `the_only_semantic.json`:
-
-```json
-{
-  "source_name": {
-    "quality_avg": 7.2,
-    "quality_scores": [7, 8, 6, 8, 7],
-    "reliability": 0.95,
-    "consecutive_failures": 0,
-    "depth": "deep",
-    "bias": "academic",
-    "freshness": "daily",
-    "exclusivity": 0.4,
-    "best_for": "research papers, original analysis",
-    "redundancy_with": {"hn": 0.15, "lobsters": 0.35},
-    "last_evaluated": "2026-03-25"
-  }
-}
-```
-
-### Exclusivity Score
-
-**v2 NEW**: Measures how often this source provides items that no other source has.
-
-```
-exclusivity(source) = (items only found here) / (total items from here)
-```
-
-High exclusivity sources are more valuable — they provide signal you can't get elsewhere. Low exclusivity sources (their content also appears on HN, Reddit, etc.) are lower priority.
-
-### Cross-Source Redundancy Map
-
-Track which sources tend to cover the same stories:
-
-```
-HN ↔ Lobsters: 35% overlap
-HN ↔ Reddit/ML: 20% overlap  
-ArXiv ↔ HuggingFace Papers: 45% overlap
-```
-
-This map informs pre-ranking: if you've already fetched from HN, Lobsters' expected yield drops by 35%.
-
-### When to Update
-
-- **Every ritual**: Update `quality_avg`, `reliability`, `consecutive_failures` for sources used.
-- **Every Maintenance Cycle**: Update `depth`, `bias`, `exclusivity`, `redundancy_with` based on accumulated evidence.
-- **Every 10 rituals**: Full Source Intelligence review — consider adding/removing sources based on accumulated data.
-
----
-
-## Pre-Synthesis Quality Gate (Enhanced)
-
-Before proceeding to synthesis (SKILL_v2.md Phase 2), verify:
-
-1. Discard error pages, 403/404, empty content, paywalls.
-2. Count remaining valid items. Need exactly `items_per_ritual`.
-3. **v2 gate**: Verify that every selected item has been fully read and understood:
-   - Core insight documented (1 sentence per item)
-   - Evidence quality assessed
-   - Connection to user's thinking identified
-4. If any item lacks full comprehension, either re-read or replace.
-5. Verify narrative arc assignment: every item has a position.
-6. Verify no redundancy: no two items have semantic similarity > 0.7.
+- [ ] All error pages, 404s, paywalls, and empty content removed
+- [ ] Exactly `items_per_ritual` items selected
+- [ ] Every selected item has been fully read and understood
+- [ ] Core insight documented (1 sentence per item)
+- [ ] Evidence quality assessed for each item
+- [ ] No two items have semantic similarity > 0.7
+- [ ] At least 3 source categories represented
+- [ ] Narrative arc position assigned to each item
+- [ ] Echo items included if any echoes exist
 
 Only then proceed to synthesis.
