@@ -349,6 +349,140 @@ class KnowledgeArchive:
                 continue
         return removed
 
+    # -- transparency report ------------------------------------------------
+
+    def transparency_report(self, year: int, month: int) -> dict:
+        """Generate a monthly transparency/self-report.
+
+        Shows Ruby's decisions, biases, performance, and invites overrides.
+        This is the "glass box" — the user sees exactly how Ruby thinks.
+        """
+        month_entries = self._entries_for_month(year, month)
+        total = len(month_entries)
+
+        if total == 0:
+            return {"error": f"No articles found for {year}-{month:02d}"}
+
+        # ── 1. Content Distribution ──
+        topic_counter: Counter[str] = Counter()
+        source_counter: Counter[str] = Counter()
+        arc_counter: Counter[str] = Counter()
+        style_counter: Counter[str] = Counter()
+        for e in month_entries:
+            for t in e.topics:
+                topic_counter[t.lower()] += 1
+            source_counter[e.source or "unknown"] += 1
+            arc_counter[e.arc_position or "unassigned"] += 1
+            style_counter[e.synthesis_style or "standard"] += 1
+
+        topic_total = sum(topic_counter.values())
+        topic_distribution = {
+            t: {"count": c, "pct": round(c / topic_total * 100, 1)}
+            for t, c in topic_counter.most_common(10)
+        }
+
+        # ── 2. Quality Metrics ──
+        quality_scores = [e.quality_score for e in month_entries if e.quality_score > 0]
+        engagement_scores = [e.engagement_score for e in month_entries if e.engagement_score > 0]
+        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0
+        avg_engagement = sum(engagement_scores) / len(engagement_scores) if engagement_scores else 0
+
+        # Quality trend (first half vs second half of month)
+        mid = total // 2
+        first_half_q = [e.quality_score for e in month_entries[:mid] if e.quality_score > 0]
+        second_half_q = [e.quality_score for e in month_entries[mid:] if e.quality_score > 0]
+        quality_trend = "improving" if (
+            second_half_q and first_half_q and
+            sum(second_half_q) / len(second_half_q) > sum(first_half_q) / len(first_half_q) + 0.3
+        ) else "declining" if (
+            second_half_q and first_half_q and
+            sum(second_half_q) / len(second_half_q) < sum(first_half_q) / len(first_half_q) - 0.3
+        ) else "stable"
+
+        # ── 3. Potential Biases ──
+        biases = []
+        # Source concentration
+        top_source, top_count = source_counter.most_common(1)[0] if source_counter else ("", 0)
+        if top_count > total * 0.4:
+            biases.append({
+                "type": "source_concentration",
+                "detail": f"{top_source} provided {top_count}/{total} articles ({top_count/total:.0%})",
+                "suggestion": f"Consider diversifying away from {top_source}",
+            })
+        # Topic echo chamber
+        top_topic, top_topic_count = topic_counter.most_common(1)[0] if topic_counter else ("", 0)
+        if topic_total > 0 and top_topic_count / topic_total > 0.5:
+            biases.append({
+                "type": "topic_echo_chamber",
+                "detail": f"'{top_topic}' appears in {top_topic_count}/{topic_total} topic slots ({top_topic_count/topic_total:.0%})",
+                "suggestion": "Increase serendipity allocation or explore adjacent domains",
+            })
+        # Low serendipity
+        surprise_count = arc_counter.get("surprise", 0) + arc_counter.get("Surprise", 0)
+        if total >= 10 and surprise_count < total * 0.1:
+            biases.append({
+                "type": "low_serendipity",
+                "detail": f"Only {surprise_count} surprise items in {total} articles",
+                "suggestion": "Raise serendipity floor or widen cross-domain search",
+            })
+
+        # ── 4. Best & Worst ──
+        by_engagement = sorted(month_entries, key=lambda e: e.engagement_score, reverse=True)
+        best = [
+            {"id": e.id, "title": e.title, "engagement": e.engagement_score, "quality": e.quality_score}
+            for e in by_engagement[:3]
+        ]
+        worst = [
+            {"id": e.id, "title": e.title, "engagement": e.engagement_score, "quality": e.quality_score}
+            for e in by_engagement[-3:] if e.engagement_score >= 0
+        ]
+
+        # ── 5. Source Reliability ──
+        source_quality: dict[str, list[float]] = {}
+        for e in month_entries:
+            source_quality.setdefault(e.source or "unknown", []).append(e.quality_score)
+        source_report = {
+            src: {
+                "articles": len(scores),
+                "avg_quality": round(sum(scores) / len(scores), 2),
+            }
+            for src, scores in source_quality.items()
+        }
+
+        return {
+            "period": f"{year}-{month:02d}",
+            "total_articles": total,
+            "content_distribution": {
+                "topics": topic_distribution,
+                "sources": dict(source_counter),
+                "arc_positions": dict(arc_counter),
+                "synthesis_styles": dict(style_counter),
+            },
+            "quality": {
+                "avg_quality": round(avg_quality, 2),
+                "avg_engagement": round(avg_engagement, 2),
+                "quality_trend": quality_trend,
+            },
+            "potential_biases": biases,
+            "highlights": {
+                "best_received": best,
+                "least_engaged": worst,
+            },
+            "source_reliability": source_report,
+            "override_prompts": [
+                "Adjust topic ratios: tell Ruby 'increase [topic] to [N]%' or 'decrease [topic]'",
+                "Exclude a source: 'stop using [source]'",
+                "Force serendipity: 'more surprises' or 'set serendipity to [N]%'",
+                "Change depth: 'go deeper on [topic]' or 'keep it brief'",
+                "Redirect focus: 'I'm done with [topic], focus on [new topic]'",
+            ],
+        }
+
+    def _entries_for_month(self, year: int, month: int) -> list[ArchiveEntry]:
+        """Filter entries to a specific year-month."""
+        prefix = f"{year}{month:02d}"
+        return [e for e in self._entries if e.id.startswith(prefix)]
+
     # -- stats --------------------------------------------------------------
 
     def total_count(self) -> int:
@@ -395,7 +529,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--action",
-        choices=["index", "search", "summary", "cleanup", "status"],
+        choices=["index", "search", "summary", "cleanup", "status", "report"],
         required=True,
         help="Action to perform",
     )
@@ -506,6 +640,52 @@ def main() -> None:
             print(f"🧹 Removed {removed} HTML file(s) older than {args.days} days.")
         else:
             print("✨ No stale HTML files to remove.")
+
+    elif args.action == "report":
+        if args.year is None or args.month is None:
+            print("❌ --year and --month required for report", file=sys.stderr)
+            sys.exit(1)
+        report = archive.transparency_report(args.year, args.month)
+        if "error" in report:
+            print(f"📭 {report['error']}")
+        else:
+            print(f"═══ Ruby Transparency Report — {report['period']} ═══\n")
+            print(f"📊 Total articles delivered: {report['total_articles']}")
+
+            q = report["quality"]
+            print(f"\n📈 Quality: avg {q['avg_quality']} | Engagement: avg {q['avg_engagement']} | Trend: {q['quality_trend']}")
+
+            dist = report["content_distribution"]
+            print("\n📋 Topic Distribution:")
+            for topic, info in dist["topics"].items():
+                print(f"    • {topic}: {info['count']} ({info['pct']}%)")
+
+            print(f"\n📡 Sources: {dist['sources']}")
+            print(f"📐 Arc positions: {dist['arc_positions']}")
+
+            if report["potential_biases"]:
+                print("\n⚠️  Potential Biases Detected:")
+                for bias in report["potential_biases"]:
+                    print(f"    • [{bias['type']}] {bias['detail']}")
+                    print(f"      → {bias['suggestion']}")
+
+            hl = report["highlights"]
+            if hl["best_received"]:
+                print("\n🌟 Best Received:")
+                for a in hl["best_received"]:
+                    print(f"    • {a['title']} (engagement: {a['engagement']}, quality: {a['quality']})")
+            if hl["least_engaged"]:
+                print("\n📉 Least Engaged:")
+                for a in hl["least_engaged"]:
+                    print(f"    • {a['title']} (engagement: {a['engagement']}, quality: {a['quality']})")
+
+            print(f"\n📡 Source Reliability:")
+            for src, info in report["source_reliability"].items():
+                print(f"    • {src}: {info['articles']} articles, avg quality {info['avg_quality']}")
+
+            print("\n🎛️  Override Options:")
+            for prompt in report["override_prompts"]:
+                print(f"    • {prompt}")
 
     elif args.action == "status":
         count = archive.total_count()

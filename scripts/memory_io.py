@@ -290,6 +290,68 @@ def action_project(memory_dir: Path) -> None:
     print(f"ok: projected {meta_path}")
 
 
+def _avg_engagement(entry: dict) -> float:
+    """Compute average engagement score for an episodic entry."""
+    engagement = entry.get("engagement", {})
+    if not engagement:
+        return 0.0
+    scores = [
+        sig.get("score", 0)
+        for sig in engagement.values()
+        if isinstance(sig, dict)
+    ]
+    return sum(scores) / len(scores) if scores else 0.0
+
+
+def _diagnose_low_engagement(
+    entries: list[dict], semantic: dict
+) -> dict:
+    """Diagnose cause of consecutive low engagement."""
+    recent = entries[-5:] if len(entries) >= 5 else entries
+    older = entries[:-5] if len(entries) > 5 else []
+
+    # Check if sources degraded
+    src_intel = semantic.get("source_intelligence", {})
+    low_reliability = [
+        s for s, info in src_intel.items()
+        if info.get("reliability", 1.0) < 0.5
+    ]
+    if len(low_reliability) >= 3:
+        return {
+            "cause": f"Source degradation — {len(low_reliability)} sources below 50% reliability",
+            "action": "Replace low-reliability sources and diversify",
+            "action_type": "source_refresh",
+        }
+
+    # Check if interest distribution shifted
+    recent_cats: dict[str, int] = {}
+    for e in recent:
+        for cat, count in e.get("categories", {}).items():
+            recent_cats[cat] = recent_cats.get(cat, 0) + count
+    older_cats: dict[str, int] = {}
+    for e in older:
+        for cat, count in e.get("categories", {}).items():
+            older_cats[cat] = older_cats.get(cat, 0) + count
+
+    # If category distribution changed significantly
+    if older_cats:
+        old_top = max(older_cats, key=older_cats.get, default="")
+        new_top = max(recent_cats, key=recent_cats.get, default="")
+        if old_top != new_top:
+            return {
+                "cause": f"Interest shift detected — dominant category changed from '{old_top}' to '{new_top}'",
+                "action": "Adjust ratios to match new interest pattern",
+                "action_type": "ratio_shift",
+            }
+
+    # Default: unknown cause, diversify
+    return {
+        "cause": "Unknown — no clear source degradation or interest shift",
+        "action": "Increase serendipity to 30%, diversify sources, wait for signal",
+        "action_type": "diversify",
+    }
+
+
 def action_maintain(memory_dir: Path) -> None:
     """Run a Maintenance Cycle: compress Episodic → Semantic, adjust ratios."""
     episodic = _load_tier(memory_dir, "episodic")
@@ -397,7 +459,89 @@ def action_maintain(memory_dir: Path) -> None:
     emerging = [e for e in emerging if e.get("status") != "faded"][:10]
     semantic["emerging_interests"] = emerging
 
-    # ── 5. Adaptive ratio adjustment ─────────────────────────────────────
+    # ── 5. Drift Detection ─────────────────────────────────────────────
+    # Compare recent delivery categories against configured ratio.
+    # If >60% from a single category, force redistribute.
+    recent_cats: dict[str, int] = {}
+    for entry in entries[-10:]:  # last 10 rituals
+        for cat, count in entry.get("categories", {}).items():
+            recent_cats[cat] = recent_cats.get(cat, 0) + count
+    total_recent = sum(recent_cats.values())
+    if total_recent > 0:
+        for cat, count in recent_cats.items():
+            pct = count / total_recent
+            if pct > 0.60:
+                changes.append(
+                    f"Drift detected: {cat} at {pct:.0%} of recent deliveries (>60%)"
+                )
+                # Will be corrected in ratio adjustment below
+
+    # ── 6. Source Vitality — auto-promote/demote ─────────────────────────
+    for src, info in list(src_intel.items()):
+        reliability = info.get("reliability", 1.0)
+        quality_avg = info.get("quality_avg", 5.0)
+        total_attempts = (
+            len(source_scores.get(src, []))
+            + source_failures.get(src, 0)
+            + info.get("_historical_attempts", 0)
+        )
+        status = info.get("status", "active")
+
+        # Auto-demote: reliability < 0.5 across 10+ attempts
+        if reliability < 0.5 and total_attempts >= 10 and status != "demoted":
+            info["status"] = "demoted"
+            changes.append(
+                f"Source demoted: {src} (reliability {reliability:.2f} across {total_attempts} attempts)"
+            )
+
+        # Auto-promote: quality_avg > 7 across 5+ items AND reliability > 0.8
+        elif (
+            quality_avg > 7.0
+            and total_attempts >= 5
+            and reliability > 0.8
+            and status != "promoted"
+        ):
+            info["status"] = "promoted"
+            changes.append(
+                f"Source promoted: {src} (quality {quality_avg:.1f}, reliability {reliability:.2f})"
+            )
+    semantic["source_intelligence"] = src_intel
+
+    # ── 7. Emergency Strategy Review ─────────────────────────────────────
+    # Trigger: 3+ consecutive rituals with avg engagement < 1.0
+    if len(entries) >= 3:
+        recent_three = entries[-3:]
+        consecutive_low = all(
+            _avg_engagement(e) < 1.0 for e in recent_three
+        )
+        if consecutive_low:
+            # Diagnose cause
+            diag = _diagnose_low_engagement(entries, semantic)
+            changes.append(f"EMERGENCY: 3+ consecutive low-engagement rituals")
+            changes.append(f"  Diagnosis: {diag['cause']}")
+            changes.append(f"  Action: {diag['action']}")
+
+            # Apply emergency action
+            if diag["action_type"] == "diversify":
+                # Increase serendipity to 30%, diversify sources
+                fetch = semantic.get("fetch_strategy", {})
+                ratio = fetch.get("ratio", {})
+                ratio["serendipity"] = 30
+                fetch["ratio"] = ratio
+                semantic["fetch_strategy"] = fetch
+            elif diag["action_type"] == "source_refresh":
+                # Mark bottom 3 sources for replacement
+                sorted_sources = sorted(
+                    src_intel.items(),
+                    key=lambda x: x[1].get("quality_avg", 0),
+                )
+                for src_name, src_info in sorted_sources[:3]:
+                    src_info["status"] = "needs_replacement"
+                    changes.append(f"  Flagged for replacement: {src_name}")
+
+            semantic["_emergency_alert_pending"] = True
+
+    # ── 8. Adaptive ratio adjustment ─────────────────────────────────────
     fetch = semantic.get("fetch_strategy", {})
     ratio = fetch.get("ratio", {"tech": 50, "philosophy": 25, "serendipity": 15, "research": 10})
     for cat, data in eng_patterns.items():
@@ -411,6 +555,25 @@ def action_maintain(memory_dir: Path) -> None:
                 reduce = min(15, int((1.5 - avg) * 10))
                 ratio[cat] = max(5, ratio[cat] - reduce)
                 changes.append(f"Ratio reduce: {cat} -{reduce}% (avg engagement {avg})")
+
+    # Drift correction: if any category >60% in recent deliveries,
+    # redistribute at least 10pp to other categories
+    if total_recent > 0:
+        for cat, count in recent_cats.items():
+            pct = count / total_recent
+            if pct > 0.60 and cat in ratio:
+                excess = ratio[cat] - 40  # target: bring down to at most 40%
+                if excess > 0:
+                    ratio[cat] -= excess
+                    # Distribute to other categories proportionally
+                    others = [c for c in ratio if c != cat]
+                    per_other = excess // max(len(others), 1)
+                    for other in others:
+                        ratio[other] = ratio.get(other, 0) + per_other
+                    changes.append(
+                        f"Drift correction: {cat} reduced by {excess}pp, redistributed"
+                    )
+
     # Enforce serendipity floor
     if ratio.get("serendipity", 0) < 10:
         ratio["serendipity"] = 10
@@ -422,7 +585,7 @@ def action_maintain(memory_dir: Path) -> None:
     fetch["ratio"] = ratio
     semantic["fetch_strategy"] = fetch
 
-    # ── 6. Log changes ───────────────────────────────────────────────────
+    # ── 9. Log changes ───────────────────────────────────────────────────
     evo_log = semantic.get("evolution_log", [])
     for change in changes:
         evo_log.append({"date": _now_iso()[:10], "note": change})

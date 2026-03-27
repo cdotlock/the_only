@@ -390,6 +390,7 @@ Every delivered article is indexed permanently in `the_only_archive/index.json`.
 - **Index**: `python3 scripts/knowledge_archive.py --action index --data '[{...}]'` — indexes articles, auto-links related entries (topic overlap > 0.5).
 - **Search**: `python3 scripts/knowledge_archive.py --action search --query "X"` or `--topics "a,b"`
 - **Digest**: `python3 scripts/knowledge_archive.py --action summary --year YYYY --month M`
+- **Report**: `python3 scripts/knowledge_archive.py --action report --year YYYY --month M` — monthly transparency report (see §9.1).
 - **Cleanup**: `python3 scripts/knowledge_archive.py --action cleanup --days 14` — removes old HTML, preserves archive metadata.
 
 See `references/delivery_and_checklist.md` for the full index data format.
@@ -398,8 +399,32 @@ See `references/delivery_and_checklist.md` for the full index data format.
 - "Show me your archive" / "What have you curated?" — summary of archive contents.
 - "Find articles about [topic]" — search archive index.
 - "Monthly digest" / "What did I learn this month?" — generated knowledge digest.
+- "How are you doing?" / "Monthly report" / "Show me your biases" — transparency report (§9.1).
 
 No expiry on archive metadata. Canvas HTML cleanup is cosmetic; the index persists.
+
+### 9.1 Transparency Dashboard
+
+Monthly self-report that makes Ruby's decisions visible and overridable. Generated automatically every 1st of the month, or on user request.
+
+**What the report shows:**
+- **Content distribution**: Topic percentages, source usage, arc position frequency
+- **Quality trends**: Average quality and engagement scores, trend direction (improving/stable/declining)
+- **Bias detection**: Automatic alerts for source concentration (>40% from one source), topic echo chambers (>50% one topic), low serendipity
+- **Highlights**: Best-received and least-engaged articles
+- **Source reliability**: Per-source article count and quality average
+- **Override prompts**: Explicit instructions the user can give to correct Ruby's behavior
+
+**Key principle**: Ruby is a glass box, not a black box. The user should always be able to see *why* Ruby chose what she chose, and *how* to change it.
+
+**Automatic delivery**: On the 1st ritual of each month (detected via ritual count and date), generate and deliver the report as an HTML article with the "Transparency" arc position. This counts toward `items_per_ritual`.
+
+**Override actions** the user can take after reading the report:
+- "Increase [topic] to [N]%" / "decrease [topic]" — direct ratio adjustment (fast-path to Semantic)
+- "Stop using [source]" — add to exclusions
+- "More surprises" / "set serendipity to [N]%" — adjust serendipity floor
+- "Go deeper on [topic]" — trigger Deep Dive ritual type
+- "I'm done with [topic]" — fast-path Core update
 
 ---
 
@@ -462,11 +487,11 @@ python3 scripts/memory_io.py --action read|write|validate|project|status|append-
 # Knowledge Graph (concept graph, storylines, gaps, visualization)
 python3 scripts/knowledge_graph.py --action ingest|query|storylines|gaps|visualize|decay|status
 
-# Delivery engine (multi-channel webhook dispatch)
-python3 scripts/the_only_engine.py --action deliver|status --payload '[...]' [--dry-run]
+# Delivery engine (multi-channel webhook dispatch with retry + rate limiting)
+python3 scripts/the_only_engine.py --action deliver|status|retry --payload '[...]' [--dry-run]
 
-# Knowledge archive (search, monthly digest, cleanup, status)
-python3 scripts/knowledge_archive.py --action search|index|summary|cleanup|status
+# Knowledge archive (search, monthly digest, transparency report, cleanup, status)
+python3 scripts/knowledge_archive.py --action search|index|summary|report|cleanup|status
 
 # Mesh network (P2P agent network over Nostr)
 python3 scripts/mesh_sync.py --action init|sync|social_report|schedule_setup
