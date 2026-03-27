@@ -55,11 +55,13 @@ Thread-following replaces fixed rounds. No mandatory minimums.
 
 3. **Contrarian probe** (1-3 searches) — Actively seek the opposing view even if results seem diverse. Echo chambers form silently.
 
-4. **Gap fill** (1-2 searches, conditional) — If after the first three stages you have < 30 candidates, search for topics in the user's interest areas that haven't appeared yet.
+4. **Storyline pursuit** (1-3 searches, conditional) — For each **active storyline** from the knowledge graph, search for new developments. This is how Ruby "follows" a story across weeks. Skip if no active storylines.
 
-**Total: 8-15 searches**, each with clear purpose. Stop when you have 25+ strong candidates. Don't stop early — more raw material means better final picks.
+5. **Gap fill** (1-2 searches, conditional) — If the knowledge graph reports high-severity gaps, search those areas. Also fires if you have < 30 candidates after stages 1-4.
 
-**Key difference from v1:** Each search is crafted based on what you have already found, not generated from a template.
+**Total: 8-18 searches**, each with clear purpose. Stop when you have 25+ strong candidates. Don't stop early — more raw material means better final picks.
+
+**Key difference from v1:** Each search is crafted based on what you have already found, informed by the knowledge graph's storylines and gaps, not generated from a template.
 
 ---
 
