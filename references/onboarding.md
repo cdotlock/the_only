@@ -48,8 +48,7 @@ Follow Steps 0 through 6 in order (Step 0 = Setup Resume check). Deliver as a gu
 **Tier 2 (Nice-to-Have — skippable with stated trade-offs):**
 - Step 3: RSS Feeds
 - Step 4: Article Publishing (Cloudflare Tunnel)
-- Step 5: NanoBanana Infographic
-- Step 5b: Mesh Network
+- Step 5: Mesh Network
 
 After all steps, show the status summary table (format in initialization.md Step 6), then transition:
 > "My abilities are ready. Now, I need the most important thing — to understand *you*."
@@ -71,7 +70,7 @@ After all steps, show the status summary table (format in initialization.md Step
 
 4. **Let the user confirm or correct** before proceeding.
 
-After Act 3, execute remaining initialization steps in `references/initialization.md` (Steps 8–12: config persistence, Context Engine creation, cron registration, Echo snippet).
+After Act 3, execute remaining initialization steps in `references/initialization.md` (Steps 8–13: config persistence, Three-Tier Memory, Knowledge Graph, cron registration, Echo snippet, complete).
 
 ---
 

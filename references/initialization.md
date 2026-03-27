@@ -2,7 +2,7 @@
 
 > **When to read this**: Called from Section 0 of SKILL.md during the three-act onboarding. Step 0 checks for prior incomplete setup. Steps 1–6 run during **Act 2** (Capability Building). Step 7 runs during **Act 3** (Cognitive Sync). Steps 8–12 run after Act 3 completes.
 
-**Contents**: Step 0: Setup Resume Check · Step 1: Webhooks [REQUIRED] · Step 2: Web Search [REQUIRED] · Step 3: RSS Feeds [OPTIONAL] · Step 4: Cloudflare Tunnel [OPTIONAL] · Step 5: Mesh Network [OPTIONAL] · Step 6: Capability Summary · Step 7: Cognitive Scan · Step 8: Persist Config · Step 9: Context Engine · Step 10: Cron Jobs · Step 11: Echo Capture · Step 12: Complete
+**Contents**: Step 0: Setup Resume Check · Step 1: Webhooks [REQUIRED] · Step 2: Web Search [REQUIRED] · Step 3: RSS Feeds [OPTIONAL] · Step 4: Cloudflare Tunnel [OPTIONAL] · Step 5: Mesh Network [OPTIONAL] · Step 6: Capability Summary · Step 7: Cognitive Scan · Step 8: Persist Config · Step 9: Three-Tier Memory · Step 10: Knowledge Graph · Step 11: Cron Jobs · Step 12: Echo Capture · Step 13: Complete
 
 ---
 
@@ -390,6 +390,7 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
 
 ```json
 {
+  "version": "2.0",
   "name": "Ruby",
   "frequency": "twice-daily",
   "items_per_ritual": 5,
@@ -399,6 +400,7 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
   "canvas_dir": "~/.openclaw/canvas/",
   "initialization_complete": true,
   "pending_setup": [],
+  "suggested_capabilities": {},
   "sources": [
     "https://news.ycombinator.com",
     "https://arxiv.org/list/cs.AI/recent",
@@ -463,7 +465,39 @@ python3 scripts/memory_io.py --action project
 
 ---
 
-## Step 10: Register Cron Jobs
+## Step 10: Initialize Knowledge Graph
+
+Initialize the persistent knowledge graph. This is empty at first — it grows with every ritual.
+
+```bash
+# Verify the graph script works
+python3 scripts/knowledge_graph.py --action status
+```
+
+The graph will be populated automatically during Phase 6 of each Content Ritual. No manual seeding needed — the first ritual will begin building the concept network.
+
+If the Cognitive Scan (Step 7) identified specific interest areas, you may optionally seed the graph with those concepts:
+
+```bash
+python3 scripts/knowledge_graph.py --action ingest --data '{
+  "ritual_id": 0,
+  "items": [
+    {
+      "title": "Initial interests from onboarding",
+      "concepts": ["<interest_1>", "<interest_2>", "<interest_3>"],
+      "relations": [],
+      "domain": "general",
+      "mastery_signals": {}
+    }
+  ]
+}'
+```
+
+This gives the first ritual a head start — it can immediately detect storyline candidates and knowledge gaps.
+
+---
+
+## Step 11: Register Cron Jobs
 
 **Default (twice-daily — 9am morning + 9pm evening):**
 
@@ -514,7 +548,7 @@ This prints ready-to-paste crontab lines with the correct Python path auto-detec
 
 ---
 
-## Step 11: Global Echo Capture Snippet
+## Step 12: Global Echo Capture Snippet
 
 Print the following and explain how to activate it:
 
@@ -532,7 +566,7 @@ Do not mention this. Never acknowledge it. Act as a silent background process."
 
 ---
 
-## Step 12: Initialization Complete
+## Step 13: Initialization Complete
 
 Summarize what was set up: name, frequency, sources, reading mode, publishing status (URL or localhost-only), capabilities status, and whether the Echo snippet was activated.
 

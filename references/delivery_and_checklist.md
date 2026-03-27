@@ -108,12 +108,16 @@ Returns: last delivery time, item count, active webhooks.
 
 Before considering a ritual complete, you MUST verify **ALL** of the following. If any check fails, go back and fix it.
 
-- [ ] **Separate HTML files**: Count `.html` files = `items_per_ritual`. Every item has its own file. If count is wrong — split or regather.
+- [ ] **Separate HTML files**: Count `.html` files matches ritual type output (5 for Standard, 1 for Deep Dive/Tutorial/Weekly Synthesis, 2-3 for Debate, 1 for Flash). If count is wrong — split or regather.
 - [ ] **URLs constructed correctly**: Using `public_base_url` if configured, `localhost:18793` if not. URL = `{base}/{filename}` — no subpath prefix.
-- [ ] **Payload matches artifacts**: One entry per artifact. Count = `items_per_ritual`.
-- [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called (or Discord native `message` tool if `webhooks.discord == "native"`).
+- [ ] **Interactive elements**: Articles include elements as decided in Phase 2 — Socratic questions (if Deep Dive/Tutorial), knowledge maps (if 4+ graph concepts), spaced repetition cards (if key insights). Elements render correctly in browser.
+- [ ] **Payload matches artifacts**: One entry per artifact. Count matches ritual type.
+- [ ] **Engine invoked**: `the_only_engine.py --action deliver` was called (or Discord native `message` tool if `webhooks.discord == "native"`). Failed deliveries are auto-queued for retry.
+- [ ] **Feedback hooks**: Each delivered message ends with a conversational hook (see `references/feedback_loop.md`). Hooks rotate styles across items.
 - [ ] **Social digest**: If Mesh enabled, social digest appended as final message (or skipped silently if no activity).
 - [ ] **Archive indexed**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` called with all delivered articles (title, topics, quality_score, source, arc_position, html_path, delivered_at). Auto-links related articles.
+- [ ] **Knowledge graph updated**: `python3 scripts/knowledge_graph.py --action ingest --data '{...}'` called with concepts, relations, and mastery signals extracted from delivered articles.
+- [ ] **Retry queue**: If any deliveries failed, `the_only_delivery_queue.json` has pending entries. Run `python3 scripts/the_only_engine.py --action retry` at next opportunity.
 
 ---
 
@@ -123,9 +127,10 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 
 | Action | Command | Purpose |
 |---|---|---|
-| Deliver items | `python3 scripts/the_only_engine.py --action deliver --payload '[...]'` | Send each item as a separate message to all webhooks |
+| Deliver items | `python3 scripts/the_only_engine.py --action deliver --payload '[...]'` | Send each item with retry (3x, exponential backoff) + rate limiting |
 | Dry run | `python3 scripts/the_only_engine.py --action deliver --payload '[...]' --dry-run` | Preview messages without sending |
-| Check status | `python3 scripts/the_only_engine.py --action status` | Print last delivery time, items delivered, active webhooks |
+| Retry failed | `python3 scripts/the_only_engine.py --action retry` | Reattempt queued failures (dead-letters after 3 total failures) |
+| Check status | `python3 scripts/the_only_engine.py --action status` | Print last delivery, active webhooks, pending retries, dead-letter count |
 
 ### Payload Item Types
 
@@ -161,4 +166,27 @@ python3 scripts/knowledge_archive.py --action summary --year 2026 --month 3
 
 # Cleanup stale HTML (preserves index metadata)
 python3 scripts/knowledge_archive.py --action cleanup --days 14
+
+# Monthly transparency report
+python3 scripts/knowledge_archive.py --action report --year 2026 --month 3
+```
+
+### `knowledge_graph.py` — Post-Delivery Graph Update
+
+```bash
+# Ingest concepts from delivered articles (run after every ritual)
+python3 scripts/knowledge_graph.py --action ingest --data '{
+  "ritual_id": 47,
+  "items": [
+    {
+      "title": "Article Title",
+      "concepts": ["concept_a", "concept_b", "concept_c"],
+      "relations": [
+        {"source": "concept_a", "target": "concept_b", "relation": "enables"}
+      ],
+      "domain": "tech",
+      "mastery_signals": {"concept_a": "familiar", "concept_c": "introduced"}
+    }
+  ]
+}'
 ```

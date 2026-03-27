@@ -83,9 +83,11 @@ Execute phases 0-6 in strict sequence. Each phase feeds the next — skipping de
    - `python3 scripts/knowledge_graph.py --action gaps --interests "<user_focus>"` — knowledge blind spots.
    - `python3 scripts/knowledge_graph.py --action query --query '{"recent": 10}'` — what's top of mind.
 8. **Select ritual type**: Read `references/ritual_types.md` §3. Evaluate conditions in order. Log selection reason. Default to Standard if no override triggers.
-9. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action sync`
+9. **Monthly transparency check**: If this is the first ritual of a new month (compare current date against last ritual date in `ritual_log.jsonl`), generate the transparency report: `python3 scripts/knowledge_archive.py --action report --year YYYY --month M`. Include the report as one of this ritual's items (replace the Synthesis arc position).
+10. **Retry pending deliveries**: If `the_only_delivery_queue.json` has pending entries, run `python3 scripts/the_only_engine.py --action retry` before starting new deliveries.
+11. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action sync`
 
-GATE 0: All three memory tiers loaded. Knowledge graph queried. Ritual type selected. Archive checked. Identity confirmed.
+GATE 0: All three memory tiers loaded. Knowledge graph queried. Ritual type selected. Archive checked. Pending retries handled. Identity confirmed.
 
 ### Phase 1: Gather — Depth-First Search
 
@@ -221,7 +223,7 @@ Follow `references/delivery_and_checklist.md` — ritual is not complete until c
 4. **Archive update**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` — add each delivered article (id, title, topics, quality_score, source, arc_position, html_path, delivered_at). Automatically links related articles by topic overlap.
 5. Execute post-delivery checklist.
 
-GATE 5: Delivery checklist passed. Archive index updated. Feedback hooks attached. Social digest included if mesh enabled.
+GATE 5: Delivery checklist passed. Archive index updated. Knowledge graph updated. Feedback hooks attached. Failed deliveries queued. Social digest included if mesh enabled.
 
 ### Phase 6: Post-Ritual Reflection
 
