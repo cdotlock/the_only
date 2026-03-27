@@ -392,6 +392,7 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
 {
   "version": "2.0",
   "name": "Ruby",
+  "language": "zh-CN",
   "frequency": "twice-daily",
   "items_per_ritual": 5,
   "tone": "Deep and Restrained",

@@ -49,6 +49,37 @@ No scripts needed. Files are accessible the instant they are saved.
 
 ## Delivery Procedure
 
+### Ritual Opener (First Message)
+
+Before sending any articles, deliver a **Ritual Opener** — a brief, warm contextual message that frames the ritual. This is the user's first contact with today's delivery. It must feel like a friend sharing discoveries, not a system notification.
+
+**Opener format** (write in the user's configured `language`):
+
+```
+[Name]'s [Morning/Evening] Edition — [Date]
+[One-sentence theme of today's ritual]
+
+📖 Reading guide:
+  1. [Title] — [arc position: Opening/Deep Dive/etc.] · [read time]
+  2. [Title] — [arc position] · [read time]
+  ...
+
+[Optional: "Continues your storyline on [topic]" if active storyline]
+[Optional: "Something new today: [serendipity topic]"]
+
+Start with #1 if you have 2 minutes. Go to #[deep dive number] if you have 20.
+```
+
+**Rules:**
+- Always send the opener as the FIRST message, before any article links.
+- Include reading time estimates (the synthesis process already knows this).
+- Highlight which article continues an active storyline (from the knowledge graph).
+- If this is a non-Standard ritual type, explain: "Today is a **Deep Dive** — one article, explored from every angle."
+- **Busy-day hint**: End the opener with a soft escape: "Busy day? Reply 'brief' and I'll resend as headlines only." This naturally surfaces the Flash Briefing option.
+- Respect the user's `language` setting for all text.
+
+### Article Messages
+
 Build the payload array with **one entry per artifact**. Each entry has a `type` and relevant metadata:
 
 ```bash
@@ -56,6 +87,7 @@ Build the payload array with **one entry per artifact**. Each entry has a `type`
 # {BASE} points to the server root — canvas files are served directly from root
 # {BATCH} = current datetime YYYYMMDD_HHMM (e.g. 20260222_1400)
 python3 scripts/the_only_engine.py --action deliver --payload '[
+  {"type":"ritual_opener", "text":"Ruby's Morning Edition — 2026-03-27\n..."},
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_001.html", "title":"Article Title 1"},
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_002.html", "title":"Article Title 2"},
   {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_003.html", "title":"Article Title 3"},
@@ -136,6 +168,7 @@ Before considering a ritual complete, you MUST verify **ALL** of the following. 
 
 | Type | Required fields | Description |
 |---|---|---|
+| `ritual_opener` | `text` | Contextual framing — first message, always sent before articles |
 | `interactive` | `url`, `title` | Article URL (public tunnel URL preferred, localhost fallback) |
 | `social_digest` | `text` | Mesh social report — final message, Mesh only |
 

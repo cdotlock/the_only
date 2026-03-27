@@ -99,7 +99,46 @@ This is the **only** time direct feedback-style questions are acceptable, and on
 
 ---
 
-## D. Feeding Signals into the Context Engine
+## D. Adaptive Format Suggestion (Busy-Day Detection)
+
+When engagement signals indicate the user may be too busy for a full Standard ritual, **soft-prompt a lighter format** instead of letting content go unread.
+
+### Detection Triggers
+
+| Signal pattern | Confidence | Suggested format |
+|---|---|---|
+| 0 engagement across all items in last ritual | High | Flash Briefing next time |
+| User replied "brief" / "忙" / "later" / "没空" | Explicit | Flash Briefing immediately |
+| 2+ consecutive rituals with avg engagement < 1.0 | Medium | Flash Briefing or Deep Dive (fewer, better items) |
+| User engages deeply with only 1 item, skips rest | Medium | Deep Dive on that topic |
+| Weekend + no engagement by noon | Low | Delay next ritual by 2 hours |
+
+### Response Protocol
+
+1. **Never downgrade silently.** Always frame the suggestion conversationally:
+   - "Busy day? I'll keep it to headlines — tap any to expand later."
+   - "Looks like a packed schedule. Here's the one article I think you'll want today."
+   - "I'll hold the full batch. Say 'go' when you're ready, or I'll send a quick 3-liner."
+
+2. **One suggestion per day.** Don't nag. If the user ignores the suggestion, deliver normally next time.
+
+3. **Remember the pattern.** If busy-day detection triggers 3+ times in a week, log to Semantic memory:
+   ```
+   "[Date]: User appears consistently time-constrained this week. Consider shifting default ritual type or reducing items_per_ritual temporarily."
+   ```
+
+4. **Auto-recovery.** When the user returns to normal engagement (avg score ≥ 2.0 for 2 consecutive rituals), resume Standard format without comment.
+
+### Integration with Ritual Type Selection
+
+The busy-day signal feeds into `references/ritual_types.md` §3 (Automatic Selection). When the adaptive format system detects a busy pattern:
+- It sets a `suggested_type` hint in episodic memory
+- The ritual type selector in Phase 0 checks for this hint before applying default rules
+- The hint expires after one ritual (single-use suggestion)
+
+---
+
+## E. Feeding Signals into the Context Engine
 
 All collected signals — explicit replies, emoji reactions, referenced articles, silence patterns — must be processed through this pipeline:
 

@@ -655,6 +655,140 @@ Embedded at the end of articles. Key insights formatted as flash cards that Ruby
 
 ---
 
+## In-Article Quick Actions
+
+Floating action bar at the bottom of every article. Lets the user signal feedback to Ruby without switching to the chat app.
+
+**Mechanism**: Each button opens a pre-filled message in the user's chat app (Telegram deeplink, etc.) or copies to clipboard as fallback. Zero infrastructure — the message goes to the same channel where Ruby delivers.
+
+```html
+<div class="quick-actions" id="quickActions">
+  <button onclick="sendAction('🔥 More on: ARTICLE_TOPIC')" title="More like this">🔥</button>
+  <button onclick="sendAction('🔬 Deep dive: ARTICLE_TOPIC')" title="Dig deeper">🔬</button>
+  <button onclick="sendAction('📌 Save: ARTICLE_TITLE')" title="Save for later">📌</button>
+  <button onclick="sendAction('💤 Less: ARTICLE_TOPIC')" title="Less of this">💤</button>
+</div>
+
+<script>
+// Populated during HTML generation from config
+const FEEDBACK_LINKS = {
+  telegram: 'https://t.me/BOT_USERNAME?text=',  // replace BOT_USERNAME
+  discord: null,  // Discord doesn't support message deeplinks
+};
+
+function sendAction(message) {
+  const encoded = encodeURIComponent(message);
+  if (FEEDBACK_LINKS.telegram) {
+    window.open(FEEDBACK_LINKS.telegram + encoded, '_blank');
+  } else {
+    navigator.clipboard.writeText(message).then(() => {
+      showToast('Copied — paste in your chat to tell Ruby');
+    });
+  }
+}
+
+function showToast(text) {
+  const toast = document.createElement('div');
+  toast.className = 'action-toast';
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Show after 30% scroll (user is engaged, not bouncing)
+let actionsShown = false;
+window.addEventListener('scroll', () => {
+  if (!actionsShown && window.scrollY / (document.body.scrollHeight - window.innerHeight) > 0.3) {
+    document.getElementById('quickActions').classList.add('visible');
+    actionsShown = true;
+  }
+});
+</script>
+```
+
+```css
+.quick-actions {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  z-index: 999;
+}
+.quick-actions.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.quick-actions button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.quick-actions button:hover {
+  transform: scale(1.15);
+  border-color: var(--accent-ruby);
+  box-shadow: 0 0 20px rgba(231, 76, 111, 0.2);
+}
+@media (max-width: 768px) {
+  .quick-actions {
+    bottom: 1rem;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+  }
+  .quick-actions.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+  .quick-actions button { width: 52px; height: 52px; }
+}
+.action-toast {
+  position: fixed;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 15, 0.9);
+  color: var(--text-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  animation: fadeInOut 3s ease forwards;
+  z-index: 1000;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+```
+
+**Button actions:**
+
+| Button | Message | Ruby's action |
+|--------|---------|---------------|
+| 🔥 | "More on: [topic]" | Append to echoes.txt, boost topic in next ritual |
+| 🔬 | "Deep dive: [topic]" | Trigger Deep Dive ritual type for next delivery |
+| 📌 | "Save: [title]" | Add to saved list in episodic, revisit in Weekly Synthesis |
+| 💤 | "Less: [topic]" | Reduce topic weight in semantic ratios |
+
+**Rules:**
+- Appear after 30% scroll (user is actually reading).
+- Include in Standard, Deep Dive, Debate, Tutorial articles. Never in Flash Briefing.
+- On mobile: larger targets (52px), center-bottom position.
+- Replace `ARTICLE_TOPIC` and `ARTICLE_TITLE` during HTML generation.
+- Replace `BOT_USERNAME` with the Telegram bot username from config (extract from webhook URL).
+
+---
+
 ## Anti-Patterns (What NOT to Do)
 
 | ❌ Don't | ✅ Do instead |

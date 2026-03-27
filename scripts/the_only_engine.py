@@ -57,8 +57,13 @@ def load_config():
 
 def format_item_message(item, index, total, bot_name):
     """Format a single item into a human-readable message."""
-    header = f"[{bot_name}] {index}/{total}"
     item_type = item.get("type", "unknown")
+
+    # Ritual opener and social digest are headerless
+    if item_type == "ritual_opener":
+        return item.get("text", "")
+
+    header = f"[{bot_name}] {index}/{total}"
 
     if item_type == "interactive":
         title = item.get("title", "Untitled")
@@ -83,8 +88,13 @@ def _html_escape(text):
 
 def format_item_message_telegram(item, index, total, bot_name):
     """Telegram-specific format using HTML for clickable links."""
-    header = f"<b>[{_html_escape(bot_name)}]</b> {index}/{total}"
     item_type = item.get("type", "unknown")
+
+    # Ritual opener and social digest are headerless
+    if item_type == "ritual_opener":
+        return _html_escape(item.get("text", ""))
+
+    header = f"<b>[{_html_escape(bot_name)}]</b> {index}/{total}"
 
     if item_type == "interactive":
         title = _html_escape(item.get("title", "Untitled"))
