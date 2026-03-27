@@ -103,11 +103,21 @@ Use a **dark, sophisticated palette**. Never use raw CSS color names (no `red`, 
 
 ### Typography
 
-**Always load Google Fonts via CDN.** Never rely on system fonts alone.
+**Load Google Fonts via CDN with system font fallbacks.** If the CDN is unreachable (e.g. restricted network environments), articles gracefully degrade to high-quality system fonts with no functional loss.
 
 ```html
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 ```
+
+```css
+:root {
+  --font-serif: 'Playfair Display', 'Noto Serif SC', 'Source Han Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', 'Noto Sans SC', 'Source Han Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+```
+
+Always reference these variables (`var(--font-serif)`, `var(--font-sans)`, `var(--font-mono)`) rather than font family names directly. This ensures CJK text renders properly even without Google Fonts.
 
 | Element | Font | Weight | Size | Notes |
 |---|---|---|---|---|
@@ -581,12 +591,14 @@ Embedded at the end of articles. Key insights formatted as flash cards that Ruby
     <span class="sr-note">Ruby will revisit this in future rituals</span>
   </div>
   <div class="sr-card" onclick="this.classList.toggle('flipped')">
-    <div class="sr-front">
-      <p>Why does increasing model size eventually hit diminishing returns?</p>
-      <span class="sr-hint">Tap to reveal</span>
-    </div>
-    <div class="sr-back">
-      <p>Because the training data's information density is finite. Beyond a certain scale, the model learns increasingly rare patterns that don't generalize — it's memorizing, not understanding. The curve flattens when you exhaust the knowledge in the data.</p>
+    <div class="sr-card-inner">
+      <div class="sr-front">
+        <p>Why does increasing model size eventually hit diminishing returns?</p>
+        <span class="sr-hint">Tap to reveal</span>
+      </div>
+      <div class="sr-back">
+        <p>Because the training data's information density is finite. Beyond a certain scale, the model learns increasingly rare patterns that don't generalize — it's memorizing, not understanding. The curve flattens when you exhaust the knowledge in the data.</p>
+      </div>
     </div>
   </div>
 </div>
@@ -619,22 +631,35 @@ Embedded at the end of articles. Key insights formatted as flash cards that Ruby
   cursor: pointer;
   min-height: 120px;
 }
+.sr-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.sr-card.flipped .sr-card-inner {
+  transform: rotateY(180deg);
+}
 .sr-front, .sr-back {
   padding: 1.5rem 2rem;
   border-radius: 12px;
-  transition: all 0.4s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .sr-front {
   background: rgba(231, 76, 111, 0.06);
   border: 1px solid rgba(231, 76, 111, 0.2);
 }
 .sr-back {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform: rotateY(180deg);
   background: rgba(231, 76, 111, 0.1);
   border: 1px solid rgba(231, 76, 111, 0.3);
 }
-.sr-card.flipped .sr-front { display: none; }
-.sr-card.flipped .sr-back { display: block; }
 .sr-hint {
   display: block;
   margin-top: 0.8rem;

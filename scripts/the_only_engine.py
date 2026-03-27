@@ -68,7 +68,12 @@ def format_item_message(item, index, total, bot_name):
     if item_type == "interactive":
         title = item.get("title", "Untitled")
         url = item.get("url", "")
-        return f"{header}\n📰 {title}\n🔗 {url}"
+        reason = item.get("curation_reason", "")
+        lines = [f"{header}", f"📰 {title}"]
+        if reason:
+            lines.append(f"💡 {reason}")
+        lines.append(f"🔗 {url}")
+        return "\n".join(lines)
 
     elif item_type == "nanobanana":
         title = item.get("title", "Infographic")
@@ -99,7 +104,12 @@ def format_item_message_telegram(item, index, total, bot_name):
     if item_type == "interactive":
         title = _html_escape(item.get("title", "Untitled"))
         url = item.get("url", "")
-        return f"{header}\n📰 <b>{title}</b>\n<a href=\"{url}\">Read →</a>"
+        reason = _html_escape(item.get("curation_reason", ""))
+        lines = [f"{header}", f"📰 <b>{title}</b>"]
+        if reason:
+            lines.append(f"💡 <i>{reason}</i>")
+        lines.append(f"<a href=\"{url}\">Read →</a>")
+        return "\n".join(lines)
 
     elif item_type == "nanobanana":
         title = _html_escape(item.get("title", "Infographic"))

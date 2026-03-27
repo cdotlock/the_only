@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quieting of the Cosmos</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #050510;
+  --bg-secondary: #0a0a1a;
+  --bg-tertiary: #10102a;
+  --accent: #8b9fcc;
+  --accent-warm: #c9a96e;
+  --accent-violet: #8b5cf6;
+  --accent-ruby: #e74c6f;
+  --text-primary: #e8e8f0;
+  --text-secondary: #9898b0;
+  --text-tertiary: #606078;
+  --border-subtle: rgba(255,255,255,0.06);
+  --glow-accent: rgba(139,159,204,0.15);
+  --font-serif: 'Playfair Display','Noto Serif SC','Source Han Serif',Georgia,'Times New Roman',serif;
+  --font-sans: 'Inter','Noto Sans SC','Source Han Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono: 'JetBrains Mono','SF Mono','Fira Code','Cascadia Code',monospace;
+  --scroll-pct: 0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 1.08rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+}
+/* Radial gradient that expands on scroll */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background: radial-gradient(ellipse at 50% 40%,
+    rgba(20,25,60, calc(0.15 + var(--scroll-pct)*0.35)) 0%,
+    rgba(5,5,16,0) calc(30% + var(--scroll-pct)*40%));
+  transition: opacity 0.3s;
+}
+/* Progress bar — top on desktop, bottom on mobile */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-warm));z-index:1000;width:0;transition:width 0.1s ease}
+@media(max-width:700px){.progress-bar{top:auto;bottom:0;height:4px}}
+/* SVG moon container */
+.cosmic-scene{position:fixed;top:0;right:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.moon-svg{position:absolute;top:15%;right:12%;width:120px;height:120px;opacity:0.7;transition:transform 0.05s linear}
+@media(max-width:700px){.moon-svg{width:70px;height:70px;top:8%;right:5%}}
+/* Content wrapper */
+.content{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:6rem 2rem 5rem}
+@media(max-width:700px){.content{padding:4rem 1rem 4rem}}
+/* Metadata bar */
+.meta-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+.meta-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-tertiary);font-weight:500}
+.arc-badge{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent);background:rgba(139,159,204,0.1);border:1px solid rgba(139,159,204,0.2);padding:0.3rem 0.8rem;border-radius:6px}
+/* Headlines */
+h1{font-family:var(--font-serif);font-size:3.2rem;font-weight:800;line-height:1.15;color:var(--text-primary);margin-bottom:1rem}
+@media(max-width:700px){h1{font-size:2rem}}
+.subtitle{font-family:var(--font-sans);font-weight:300;font-size:1.25rem;color:var(--text-secondary);margin-bottom:2.5rem;line-height:1.5}
+.divider{width:60px;height:2px;background:var(--accent);margin:0 0 2.5rem;border:none}
+/* Body text */
+p{margin-bottom:1.5rem;color:var(--text-secondary)}
+h2{font-family:var(--font-serif);font-size:1.8rem;font-weight:700;color:var(--text-primary);margin:3rem 0 1.2rem}
+/* Pull quote */
+.pull-quote{margin:2.5rem 0;padding:1.5rem 2rem;border-left:3px solid var(--accent);font-family:var(--font-serif);font-size:1.25rem;font-style:italic;color:var(--text-primary);line-height:1.6;background:rgba(139,159,204,0.04);border-radius:0 12px 12px 0}
+/* Reveal animation */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* Glass card */
+.glass-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid var(--border-subtle);border-radius:16px;padding:2rem}
+/* Socratic block */
+.socratic-block{margin:2rem 0;padding:1.5rem 2rem;background:rgba(139,92,246,0.06);border-left:3px solid var(--accent-violet);border-radius:0 12px 12px 0}
+.socratic-prompt{font-size:0.8rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-tertiary);margin-bottom:0.5rem}
+.socratic-question{font-family:var(--font-serif);font-size:1.2rem;font-style:italic;color:var(--text-primary);margin-bottom:1rem;line-height:1.6}
+.socratic-toggle{background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:var(--text-secondary);padding:0.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:var(--font-sans);transition:all 0.3s ease}
+.socratic-toggle:hover{background:rgba(139,92,246,0.25);color:var(--text-primary)}
+.socratic-answer{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.5s ease,opacity 0.5s ease,margin 0.3s ease;margin-top:0}
+.socratic-answer.revealed{max-height:500px;opacity:1;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-subtle)}
+/* SR Card */
+.sr-card-container{margin:2.5rem 0}
+.sr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem}
+.sr-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent-ruby);font-weight:600}
+.sr-note{font-size:0.72rem;color:var(--text-tertiary);font-style:italic}
+.sr-card{perspective:1000px;cursor:pointer;min-height:120px}
+.sr-card-inner{position:relative;width:100%;min-height:120px;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d}
+.sr-card.flipped .sr-card-inner{transform:rotateY(180deg)}
+.sr-front,.sr-back{padding:1.5rem 2rem;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.sr-front{background:rgba(139,159,204,0.06);border:1px solid rgba(139,159,204,0.2)}
+.sr-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);background:rgba(139,159,204,0.1);border:1px solid rgba(139,159,204,0.3);overflow-y:auto}
+.sr-hint{display:block;margin-top:0.8rem;font-size:0.75rem;color:var(--text-tertiary);letter-spacing:0.08em}
+.sr-card p{font-size:1.05rem;line-height:1.7;color:var(--text-primary)}
+/* Footer */
+.article-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-tertiary)}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Cosmic SVG scene -->
+<div class="cosmic-scene">
+  <svg class="moon-svg" id="moonSvg" viewBox="0 0 120 120" fill="none">
+    <defs>
+      <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#e8dcc8" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#c9a96e" stop-opacity="0.3"/>
+      </radialGradient>
+      <mask id="crescentMask">
+        <circle cx="60" cy="60" r="50" fill="white"/>
+        <circle id="shadowCircle" cx="85" cy="55" r="46" fill="black"/>
+      </mask>
+    </defs>
+    <circle cx="60" cy="60" r="50" fill="url(#moonGlow)" mask="url(#crescentMask)"/>
+    <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(201,169,110,0.15)" stroke-width="1"/>
+  </svg>
+</div>
+
+<div class="content">
+  <!-- Meta bar -->
+  <div class="meta-bar reveal">
+    <span class="meta-label">Astrophysics &middot; 7 min read</span>
+    <span class="arc-badge">Deep Dive</span>
+  </div>
+
+  <!-- Headline -->
+  <h1 class="reveal">The Quieting of the Cosmos</h1>
+  <p class="subtitle reveal">Why the universe is getting darker, and what its fading light means for the future of observation.</p>
+  <hr class="divider reveal">
+
+  <!-- Act 1: Opening -->
+  <p class="reveal">There is a silence settling over the universe. Not the silence of empty space, which has always been there, but a deeper kind: the slow dimming of everything that once burned. Stars are being born at a fraction of the rate they were ten billion years ago. The cosmos, it turns out, passed its peak luminosity long before Earth existed.</p>
+
+  <p class="reveal">We live in the afterglow. The most productive epoch of star formation crested roughly eleven billion years ago, when galaxies were dense, gas-rich cauldrons converting hydrogen into light at extraordinary rates. What remains today is a universe running on fumes, its fuel scattered and thin, its fires cooling.</p>
+
+  <!-- Act 2: Immersion -->
+  <h2 class="reveal">The Stellar Birth Rate Collapse</h2>
+
+  <p class="reveal">The numbers are striking. At cosmic noon, the universe produced roughly thirty times more stars per year per cubic megaparsec than it does today. This is not a gentle decline. It is a collapse, steep and accelerating. The raw material still exists in vast reservoirs of intergalactic gas, but it has become too diffuse, too hot, too stabilized by dark energy's expansion to condense efficiently into new stellar nurseries.</p>
+
+  <div class="pull-quote reveal">
+    The universe is not dying in fire. It is retiring quietly, a furnace that has burned through its best fuel and now smolders on residuals.
+  </div>
+
+  <p class="reveal">Every photon that reaches your eye from a distant galaxy is a relic. By the time starlight from the edge of the observable universe arrives, those stars may already be cold. We are archaeologists of light, sifting through messages sent billions of years ago by sources that may no longer exist.</p>
+
+  <p class="reveal">The Hubble Space Telescope and its successor, JWST, have documented this decline with unprecedented clarity. Deep field observations reveal that high-redshift galaxies blaze with ultraviolet fury, compact and chaotic, while their low-redshift counterparts glow with the amber calm of aging stellar populations. The color of the cosmos itself has shifted, from the blue-white of youth to a pallid beige that astronomers have half-jokingly named "cosmic latte."</p>
+
+  <!-- Socratic question -->
+  <div class="socratic-block reveal">
+    <p class="socratic-prompt">Before reading on, consider:</p>
+    <p class="socratic-question">"If the universe has been dimming for billions of years, why are we only now able to measure it? What changed in our observational capability?"</p>
+    <button class="socratic-toggle" onclick="this.nextElementSibling.classList.toggle('revealed'); this.textContent = this.textContent === 'Think, then reveal \u2192' ? 'Hide' : 'Think, then reveal \u2192'">Think, then reveal &rarr;</button>
+    <div class="socratic-answer">
+      <p>Two breakthroughs converged. First, space-based infrared telescopes like JWST can see the redshifted ultraviolet light from the earliest galaxies, revealing their true luminosity. Second, wide-field surveys now cover enough volume to measure cosmic star formation rates statistically, not galaxy by galaxy but across representative slices of the entire observable universe. The dimming was always happening. We simply lacked the instruments to quantify it at cosmological scales.</p>
+    </div>
+  </div>
+
+  <h2 class="reveal">Dark Energy's Quiet Victory</h2>
+
+  <p class="reveal">The accelerating expansion driven by dark energy does not merely push galaxies apart. It thins the intergalactic medium, stretching filaments of gas that once fed galaxy formation into gossamer threads. In the early universe, galaxies collided frequently, their mergers compressing gas and igniting starbursts. Today, those collisions grow rarer as the distances between galaxies widen faster than gravity can close them.</p>
+
+  <p class="reveal">There is a poignancy to this. The universe's greatest creative epoch is behind it. The structures we see, the spiral arms and elliptical halos, are increasingly the final forms. Not frozen, but slow, evolving on timescales that dwarf any civilization's lifespan.</p>
+
+  <!-- Climax paragraph — moon goes full here -->
+  <p class="reveal" id="climaxParagraph">And yet the dimming is not a tragedy. It is the natural consequence of a universe that obeys its own thermodynamics with perfect fidelity. The second law does not discriminate. Stars, like all dissipative systems, convert potential energy into radiance and waste heat, and when the potential is exhausted, the radiance fades. The cosmos is not failing. It is completing a process that began with the first density fluctuations in the primordial plasma, a process whose conclusion was written into the initial conditions of the Big Bang itself.</p>
+
+  <h2 class="reveal">What Remains</h2>
+
+  <p class="reveal">Red dwarfs will persist for trillions of years, their dim glow the universe's longest-running lanterns. White dwarfs will cool into black dwarfs over timescales so vast they have no precedent in current cosmic history. The background radiation will stretch to wavelengths no instrument can detect. And eventually, if proton decay is real, even the matter that once formed stars will dissolve into a thin bath of photons and leptons.</p>
+
+  <p class="reveal">But that is incomprehensibly far away. Right now, in this narrow window of cosmic time, the universe is still bright enough to study itself through us. That may be the most remarkable fact of all: the cosmos generated observers just in time to watch its own twilight begin.</p>
+
+  <!-- SR Card -->
+  <div class="sr-card-container reveal">
+    <div class="sr-header">
+      <span class="sr-label">Key Insight</span>
+      <span class="sr-note">Ruby will revisit this in future rituals</span>
+    </div>
+    <div class="sr-card" onclick="this.classList.toggle('flipped')">
+      <div class="sr-card-inner">
+        <div class="sr-front">
+          <p>Why is the universe getting darker, and when did it peak?</p>
+          <span class="sr-hint">Tap to reveal</span>
+        </div>
+        <div class="sr-back">
+          <p>The cosmic star formation rate peaked roughly 11 billion years ago ("cosmic noon") and has declined by a factor of thirty since. Dark energy accelerates expansion, thinning the intergalactic gas that fuels star birth. The universe is not dying suddenly but completing a thermodynamic process encoded in its initial conditions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="article-footer reveal">
+    <span>Astrophysics &middot; Cosmology</span>
+    <span>Ruby &middot; Template Reference</span>
+  </div>
+</div>
+
+<script>
+// Scroll progress + custom property
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  document.getElementById('progressBar').style.width = (pct * 100) + '%';
+  document.body.style.setProperty('--scroll-pct', pct);
+
+  // Moon parallax
+  const moonSvg = document.getElementById('moonSvg');
+  moonSvg.style.transform = `translateY(${pct * -180}px)`;
+
+  // Crescent to full: move shadow circle off to the right
+  const shadow = document.getElementById('shadowCircle');
+  const shadowX = 85 + pct * 120; // starts at 85 (crescent), moves to 205 (fully off)
+  shadow.setAttribute('cx', shadowX);
+});
+
+// IntersectionObserver for .reveal elements
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

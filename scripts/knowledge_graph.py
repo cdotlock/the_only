@@ -29,7 +29,19 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-GRAPH_FILE = os.path.expanduser("~/memory/the_only_knowledge_graph.json")
+DEFAULT_MEMORY_DIR = os.path.expanduser("~/memory")
+GRAPH_FILENAME = "the_only_knowledge_graph.json"
+
+# Module-level graph path — set by main() from --memory-dir, or defaults to ~/memory/.
+# Direct callers can override via set_graph_file() before invoking action functions.
+GRAPH_FILE = os.path.join(DEFAULT_MEMORY_DIR, GRAPH_FILENAME)
+
+
+def set_graph_file(memory_dir: str) -> None:
+    """Set the graph file path from a memory directory. Call before any action."""
+    global GRAPH_FILE
+    GRAPH_FILE = os.path.join(memory_dir, GRAPH_FILENAME)
+
 
 DEFAULT_GRAPH = {
     "version": "2.0",
@@ -204,6 +216,8 @@ def _update_storylines(
     """Detect and update storylines — topics that appear across 3+ rituals."""
     storylines = graph.get("storylines", [])
 
+    MAX_STORYLINE_CONCEPTS = 15  # prevent unbounded growth
+
     # Update existing storylines
     for sl in storylines:
         if sl.get("status") == "closed":
@@ -212,11 +226,14 @@ def _update_storylines(
         if overlap:
             sl["last_ritual"] = ritual_id
             sl["ritual_count"] = sl.get("ritual_count", 1) + 1
-            # Add new concepts that co-occur with storyline concepts
-            for c in ritual_concepts:
-                neighbors = _get_neighbors(graph, c)
-                if neighbors & set(sl["concept_ids"]) and c not in sl["concept_ids"]:
-                    sl["concept_ids"].append(c)
+            # Add new concepts that co-occur with storyline concepts (capped)
+            if len(sl["concept_ids"]) < MAX_STORYLINE_CONCEPTS:
+                for c in ritual_concepts:
+                    if len(sl["concept_ids"]) >= MAX_STORYLINE_CONCEPTS:
+                        break
+                    neighbors = _get_neighbors(graph, c)
+                    if neighbors & set(sl["concept_ids"]) and c not in sl["concept_ids"]:
+                        sl["concept_ids"].append(c)
 
     # Detect new potential storylines from concept clusters
     # A storyline candidate = 3+ concepts that co-occur in this ritual
@@ -587,8 +604,14 @@ def main():
     parser.add_argument("--data", type=str, help="JSON data for ingest")
     parser.add_argument("--query", type=str, help="JSON query for query/visualize")
     parser.add_argument("--interests", type=str, help="Comma-separated interests for gaps")
+    parser.add_argument(
+        "--memory-dir",
+        default=DEFAULT_MEMORY_DIR,
+        help="Memory directory (default: ~/memory)",
+    )
 
     args = parser.parse_args()
+    set_graph_file(args.memory_dir)
 
     if args.action == "ingest":
         if not args.data:

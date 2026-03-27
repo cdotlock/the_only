@@ -26,7 +26,8 @@ Actions:
   maintain        — Auto-unfollow stale/low-quality agents + prune peers
   schedule_setup  — Print crontab lines for twice-daily auto-sync
 
-Requires: pip3 install coincurve websockets python-socks
+Stdlib only. No external deps (except websockets for relay transport).
+Requires: pip3 install websockets python-socks
 """
 
 import argparse
@@ -36,12 +37,6 @@ import os
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-try:
-    import coincurve
-except ImportError:
-    print("❌ coincurve is required: pip3 install coincurve", file=sys.stderr)
-    sys.exit(1)
 
 try:
     import websockets
@@ -220,17 +215,176 @@ def get_relays() -> list:
 
 
 # ══════════════════════════════════════════════════════════════
-# CRYPTO — secp256k1 Schnorr (BIP-340 / Nostr NIP-01)
+# CRYPTO — Pure Python secp256k1 + BIP-340 Schnorr (Nostr NIP-01)
+# No external dependencies. Uses only hashlib + os.urandom.
 # ══════════════════════════════════════════════════════════════
 
+# -- secp256k1 curve parameters --
+_P  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+_N  = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+_Gx = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
+_Gy = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+_A  = 0
+_B  = 7
+
+
+def _modinv(a, m=_P):
+    """Modular inverse via Fermat's little theorem (m is prime)."""
+    return pow(a, m - 2, m)
+
+
+def _point_add(p1, p2):
+    """Elliptic curve point addition on secp256k1. None represents point at infinity."""
+    if p1 is None:
+        return p2
+    if p2 is None:
+        return p1
+    x1, y1 = p1
+    x2, y2 = p2
+    if x1 == x2:
+        if y1 != y2:
+            return None  # point at infinity
+        # Point doubling
+        lam = (3 * x1 * x1) * _modinv(2 * y1) % _P
+    else:
+        lam = (y2 - y1) * _modinv(x2 - x1) % _P
+    x3 = (lam * lam - x1 - x2) % _P
+    y3 = (lam * (x1 - x3) - y1) % _P
+    return (x3, y3)
+
+
+def _point_mul(k, point=None):
+    """Scalar multiplication using double-and-add. Default base point is G."""
+    if point is None:
+        point = (_Gx, _Gy)
+    result = None
+    addend = point
+    while k > 0:
+        if k & 1:
+            result = _point_add(result, addend)
+        addend = _point_add(addend, addend)
+        k >>= 1
+    return result
+
+
+def _bytes_from_int(x, length=32):
+    return x.to_bytes(length, byteorder="big")
+
+
+def _int_from_bytes(b):
+    return int.from_bytes(b, byteorder="big")
+
+
+def _tagged_hash(tag: str, data: bytes) -> bytes:
+    """BIP-340 tagged hash: SHA256(SHA256(tag) || SHA256(tag) || data)."""
+    tag_hash = hashlib.sha256(tag.encode()).digest()
+    return hashlib.sha256(tag_hash + tag_hash + data).digest()
+
+
+def _lift_x(x_int):
+    """Recover a point from its x-coordinate (even y). Returns None if not on curve."""
+    if x_int >= _P:
+        return None
+    y_sq = (pow(x_int, 3, _P) + _B) % _P
+    y = pow(y_sq, (_P + 1) // 4, _P)
+    if pow(y, 2, _P) != y_sq:
+        return None
+    if y & 1:
+        y = _P - y
+    return (x_int, y)
+
+
+def _has_even_y(point):
+    return point[1] % 2 == 0
+
+
+# -- Wrapper class so callers can use privkey.secret / privkey as opaque object --
+
+class _Secp256k1PrivateKey:
+    """Minimal private key wrapper for secp256k1 (BIP-340 x-only pubkeys)."""
+
+    def __init__(self, secret_bytes: bytes):
+        if len(secret_bytes) != 32:
+            raise ValueError("Private key must be 32 bytes")
+        self.secret = secret_bytes
+        self._scalar = _int_from_bytes(secret_bytes)
+        if self._scalar == 0 or self._scalar >= _N:
+            raise ValueError("Private key out of valid range")
+        # Compute full public key point once
+        self._pubpoint = _point_mul(self._scalar)
+        # x-only pubkey bytes (BIP-340)
+        self.xonly_pubkey = _bytes_from_int(self._pubpoint[0])
+
+    @classmethod
+    def generate(cls):
+        while True:
+            raw = os.urandom(32)
+            scalar = _int_from_bytes(raw)
+            if 0 < scalar < _N:
+                return cls(raw)
+
+    def schnorr_sign(self, msg: bytes) -> bytes:
+        """BIP-340 Schnorr signature over a 32-byte message."""
+        if len(msg) != 32:
+            raise ValueError("Message must be 32 bytes")
+        d = self._scalar
+        P = self._pubpoint
+        if not _has_even_y(P):
+            d = _N - d
+        # Deterministic nonce: aux_rand = 32 zero bytes (acceptable for non-custody use)
+        t = _bytes_from_int(d)
+        aux = b'\x00' * 32
+        t_xored = bytes(a ^ b for a, b in zip(t, _tagged_hash("BIP0340/aux", aux)))
+        rand = _tagged_hash("BIP0340/nonce", t_xored + self.xonly_pubkey + msg)
+        k_prime = _int_from_bytes(rand) % _N
+        if k_prime == 0:
+            raise RuntimeError("Nonce is zero — astronomically unlikely")
+        R = _point_mul(k_prime)
+        if not _has_even_y(R):
+            k_prime = _N - k_prime
+        e_bytes = _tagged_hash("BIP0340/challenge",
+                               _bytes_from_int(R[0]) + self.xonly_pubkey + msg)
+        e = _int_from_bytes(e_bytes) % _N
+        sig = _bytes_from_int(R[0]) + _bytes_from_int((k_prime + e * d) % _N)
+        return sig
+
+
+def _schnorr_verify_raw(pubkey_bytes: bytes, msg: bytes, sig: bytes) -> bool:
+    """BIP-340 Schnorr verification. All inputs are raw bytes."""
+    if len(pubkey_bytes) != 32 or len(msg) != 32 or len(sig) != 64:
+        return False
+    P = _lift_x(_int_from_bytes(pubkey_bytes))
+    if P is None:
+        return False
+    r = _int_from_bytes(sig[:32])
+    s = _int_from_bytes(sig[32:])
+    if r >= _P or s >= _N:
+        return False
+    e_bytes = _tagged_hash("BIP0340/challenge",
+                           sig[:32] + pubkey_bytes + msg)
+    e = _int_from_bytes(e_bytes) % _N
+    # R = s*G - e*P
+    sG = _point_mul(s)
+    eP = _point_mul(e, P)
+    # negate eP
+    neg_eP = (eP[0], (_P - eP[1]) % _P) if eP is not None else None
+    R = _point_add(sG, neg_eP)
+    if R is None:
+        return False
+    if not _has_even_y(R):
+        return False
+    if R[0] != r:
+        return False
+    return True
+
+
+# -- Public API (unchanged signatures) --
 
 def generate_keypair() -> dict:
-    privkey = coincurve.PrivateKey()
-    pubkey_compressed = privkey.public_key.format(compressed=True)
-    pubkey_xonly = pubkey_compressed[1:]  # x-only: drop parity prefix
+    key = _Secp256k1PrivateKey.generate()
     return {
-        "private_key": privkey.secret.hex(),
-        "public_key":  pubkey_xonly.hex(),
+        "private_key": key.secret.hex(),
+        "public_key":  key.xonly_pubkey.hex(),
     }
 
 
@@ -239,13 +393,13 @@ def load_signing_key():
     if not keys or "private_key" not in keys:
         return None
     try:
-        return coincurve.PrivateKey(bytes.fromhex(keys["private_key"]))
+        return _Secp256k1PrivateKey(bytes.fromhex(keys["private_key"]))
     except Exception:
         return None
 
 
 def get_pubkey_hex(privkey) -> str:
-    return privkey.public_key.format(compressed=True)[1:].hex()
+    return privkey.xonly_pubkey.hex()
 
 
 def compute_id(pubkey, created_at, kind, tags, content) -> str:
@@ -258,13 +412,16 @@ def compute_id(pubkey, created_at, kind, tags, content) -> str:
 
 
 def schnorr_sign(privkey, message_hex: str) -> str:
-    return privkey.sign_schnorr(bytes.fromhex(message_hex)).hex()
+    return privkey.schnorr_sign(bytes.fromhex(message_hex)).hex()
 
 
 def schnorr_verify(pubkey_hex: str, message_hex: str, sig_hex: str) -> bool:
     try:
-        xonly = coincurve.PublicKeyXOnly(bytes.fromhex(pubkey_hex))
-        return xonly.verify(bytes.fromhex(sig_hex), bytes.fromhex(message_hex))
+        return _schnorr_verify_raw(
+            bytes.fromhex(pubkey_hex),
+            bytes.fromhex(message_hex),
+            bytes.fromhex(sig_hex),
+        )
     except Exception:
         return False
 

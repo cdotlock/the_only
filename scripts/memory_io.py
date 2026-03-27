@@ -352,8 +352,12 @@ def _diagnose_low_engagement(
     }
 
 
-def action_maintain(memory_dir: Path) -> None:
-    """Run a Maintenance Cycle: compress Episodic → Semantic, adjust ratios."""
+def action_maintain(memory_dir: Path, force: bool = False) -> None:
+    """Run a Maintenance Cycle: compress Episodic → Semantic, adjust ratios.
+
+    Enforces a 24-hour cooldown between cycles to prevent double-processing.
+    Use force=True to bypass the cooldown (e.g., manual invocation).
+    """
     episodic = _load_tier(memory_dir, "episodic")
     semantic = _load_tier(memory_dir, "semantic")
     entries = episodic.get("entries", [])
@@ -361,6 +365,22 @@ def action_maintain(memory_dir: Path) -> None:
     if not entries:
         print("maintain: no episodic entries to process")
         return
+
+    # Cooldown: skip if last maintenance was < 24 hours ago
+    if not force:
+        last_maint = semantic.get("last_maintenance", "")
+        if last_maint:
+            try:
+                last_dt = datetime.fromisoformat(last_maint.replace("Z", "+00:00"))
+                hours_ago = (datetime.now(timezone.utc) - last_dt).total_seconds() / 3600
+                if hours_ago < 24:
+                    print(
+                        f"maintain: skipped — last maintenance was {hours_ago:.1f}h ago "
+                        f"(cooldown: 24h). Use --force to override."
+                    )
+                    return
+            except (ValueError, TypeError):
+                pass  # corrupted timestamp, proceed anyway
 
     changes: list[str] = []
 
@@ -631,6 +651,11 @@ def main() -> None:
         default=os.path.expanduser("~/memory"),
         help="Memory directory (default: ~/memory)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass maintenance cooldown (for maintain action)",
+    )
     args = parser.parse_args()
     memory_dir = Path(args.memory_dir)
 
@@ -661,7 +686,7 @@ def main() -> None:
         action_append_episodic(memory_dir, args.data)
 
     elif args.action == "maintain":
-        action_maintain(memory_dir)
+        action_maintain(memory_dir, force=args.force)
 
 
 if __name__ == "__main__":

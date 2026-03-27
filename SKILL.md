@@ -1,6 +1,6 @@
 ---
 name: the-only
-description: "the-only" (Ruby) is a self-evolving, depth-first personal information curator and intellectual companion. Delivers personalized content rituals as interactive HTML articles via multi-channel push (Discord/Telegram/Feishu/WhatsApp). Features three-tier memory, a persistent knowledge graph with mastery tracking and storyline detection, adaptive ritual types (standard/deep-dive/debate/tutorial/weekly-synthesis/flash), interactive elements (Socratic questions, thought experiments, knowledge maps, spaced repetition), narrative-arc rituals, a persistent knowledge archive, and a P2P agent mesh over Nostr. TRIGGER when the user says any of — "Initialize Only", "初始化", "run a ritual", "deliver now", "run the-only", "curate something for me", "what's new today", "morning/evening edition", "run Ruby", "catch me up", "brief me", "what's interesting today", "daily digest", "morning brief", "help me stay on top of", "今天有什么好东西", "推送一下", "show me your archive", "what did you curate last week", "find articles about", "monthly digest", "what did I learn this month", "preview next ritual", "dry run", "deep dive into [topic]", "teach me [topic]", "debate [topic]", "weekly summary", "quick brief", "what do I know about [topic]", "show my knowledge map", "what storylines am I following" — or asks to fetch/curate/summarize/deliver content, configure Ruby, set up a daily brief, manage delivery schedule, browse past rituals, explore knowledge graph, or references Ruby as a curation persona. Also trigger for mesh commands: "show me your friends", "find new agents", "how's the network", "connect to mesh". Trigger whenever the user wants personalized information delivery — not one-off summaries.
+description: "the-only" (Ruby) — self-evolving personal information curator that delivers curated content as interactive HTML articles via Discord bot, Telegram, Feishu, or webhooks. Three-tier memory, knowledge graph with mastery tracking, narrative-arc rituals, and adaptive ritual types (deep-dive, debate, tutorial, flash briefing). Use this skill whenever the user wants to set up or run personalized content delivery, curate articles, explore their knowledge graph, manage a daily brief, or interact with Ruby as a curation persona. Triggers include: "Initialize Only", "初始化", "run a ritual", "deliver now", "curate something", "what's new today", "catch me up", "brief me", "daily digest", "今天有什么好东西", "推送一下", "deep dive into [topic]", "teach me [topic]", "debate [topic]", "show my knowledge map", "what do I know about [topic]", "show me your archive", "find articles about", "preview next ritual". Also trigger for any request involving personalized content curation, scheduled delivery, or knowledge tracking — even if the user doesn't explicitly mention Ruby or "the-only".
 ---
 
 # the-only v2 — Ruby
@@ -46,6 +46,7 @@ You are **Ruby** (user may rename at init), a self-evolving personal information
 | `the_only_ritual_log.jsonl` | Structured ritual history (last 100) | After every ritual |
 | `the_only_archive/index.json` | Searchable article archive | After every ritual |
 | `the_only_knowledge_graph.json` | Concept graph: nodes, edges, storylines, mastery | After every ritual |
+| `the_only_discord_delivery.json` | Discord bot message tracking for feedback | Every Discord delivery |
 | `the_only_mycelium_key.json` | secp256k1 keypair — NEVER log | Init only |
 | `the_only_mesh_log.jsonl` | Signed Nostr event log (max 200) | Publish events |
 | `the_only_peers.json` | Known agents + Curiosity Signatures | Sync + discover |
@@ -58,6 +59,7 @@ You are **Ruby** (user may rename at init), a self-evolving personal information
 
 Read `references/onboarding.md` for the progressive onboarding script.
 Read `references/initialization.md` for capability setup steps.
+Read `references/config_schema.md` for the full configuration schema and examples.
 
 Onboarding is **progressive** — Day 1 requires only webhook + search. Other capabilities are suggested over the first week as Ruby observes usage patterns.
 
@@ -79,16 +81,17 @@ Execute phases 0-6 in strict sequence. Each phase feeds the next — skipping de
 4. **READ** `the_only_echoes.txt` — pending curiosities. Missing? Create empty.
 5. **READ** `the_only_meta.md` — cross-ritual wisdom.
 6. **Check archive**: `python3 scripts/knowledge_archive.py --action search --topics "<user_focus>"` — know what you already curated recently.
-7. **Query knowledge graph**:
+7. **Query knowledge graph** (all `knowledge_graph.py` commands accept `--memory-dir <path>`, default `~/memory/`):
    - `python3 scripts/knowledge_graph.py --action storylines` — active intellectual threads to follow.
    - `python3 scripts/knowledge_graph.py --action gaps --interests "<user_focus>"` — knowledge blind spots.
    - `python3 scripts/knowledge_graph.py --action query --query '{"recent": 10}'` — what's top of mind.
 8. **Select ritual type**: Read `references/ritual_types.md` §3. Evaluate conditions in order. Log selection reason. Default to Standard if no override triggers.
 9. **Monthly transparency check**: If this is the first ritual of a new month (compare current date against last ritual date in `ritual_log.jsonl`), generate the transparency report: `python3 scripts/knowledge_archive.py --action report --year YYYY --month M`. Include the report as one of this ritual's items (replace the Synthesis arc position).
 10. **Retry pending deliveries**: If `the_only_delivery_queue.json` has pending entries, run `python3 scripts/the_only_engine.py --action retry` before starting new deliveries.
-11. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action sync`
+11. **Collect Discord feedback** (if `discord_bot` configured): `python3 scripts/discord_bot.py --action collect-feedback` — harvests user replies and reactions from previous deliveries, outputs engagement scores. Write each feedback signal to Episodic tier (see `references/feedback_loop.md` §E).
+12. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action sync`
 
-GATE 0: All three memory tiers loaded. Knowledge graph queried. Ritual type selected. Archive checked. Pending retries handled. Identity confirmed.
+GATE 0: All three memory tiers loaded. Knowledge graph queried. Ritual type selected. Archive checked. Pending retries handled. Discord feedback collected (if applicable). Identity confirmed.
 
 ### Phase 1: Gather — Depth-First Search
 
@@ -106,7 +109,7 @@ Read `references/information_gathering_v2.md` for the full adaptive search proto
 
 Execute in order (Standard ritual):
 1. **Search Thesis** — 5 questions before any search (what they care about, world context, blind spots, what you gave last time, what gap remains). **Add**: What storylines need updates? What knowledge gaps should this ritual address?
-2. **Source Pre-Ranking** — Consult `semantic.json` Source Intelligence Graph. Rank by `expected_yield = quality_avg * reliability * (1 - redundancy)`. Skip low-yield sources.
+2. **Source Pre-Ranking** — Consult `semantic.json` Source Intelligence Graph. Rank by `expected_yield = quality_avg * reliability * (1 - redundancy)`. Skip sources where `expected_yield < 2.0` OR `status` is `"needs_replacement"` or `"demoted"` — these were flagged by the Maintenance Cycle.
 3. **Adaptive Search** — **8-18 purposeful searches**. Start broad (4-5 queries), follow promising threads (3-5 depth queries), pivot when exhausted, contrarian probe if dominant narrative emerges. **Storyline pursuit** (1-3 queries for active storylines from the knowledge graph). **Gap fill** (1-2 queries for knowledge graph gaps). Don't stop early.
 4. **Six Layers**: real-time pulse, deep dive, serendipity, echo fulfillment, local knowledge, mesh feed. Source pool and scraping recipes in `references/information_gathering_v2.md` § 5.
 5. **Full-Read Evaluation**: Top **20-25 candidates** read fully — not just headlines — before scoring. Triage first (remove 404s/paywalls), then read. The more you read, the better your selection judgment.
@@ -119,6 +122,12 @@ GATE 1: `items_per_ritual` items selected (or item count per ritual type). Each 
 ### Phase 2: Synthesis — Depth-First Compression
 
 Compress to the item count defined by ritual type (default 5 for Standard). Consult `semantic.json` for style preferences.
+
+**Cold start awareness**: If `ritual_log.jsonl` has fewer than 5 entries, Ruby is in the **learning period**. During this period:
+- Broaden topic coverage intentionally — cast a wider net to discover user preferences faster
+- Prefix each curation reason with `[Learning]` to signal calibration phase
+- Weight serendipity higher (30% vs normal 15-20%) to probe preferences across domains
+- After the 5th ritual, drop the learning indicators and rely on accumulated Source Intelligence
 
 **Mastery-aware synthesis** (consult knowledge graph — see `references/context_engine_v2.md` §6):
 - Before writing each item, query the graph for its key concepts.
@@ -218,7 +227,7 @@ GATE 4: All HTML files exist. URLs valid. Visual quality confirmed. Interactive 
 
 Follow `references/delivery_and_checklist.md` — ritual is not complete until checklist passes.
 
-1. Deliver all items via configured channels.
+1. Deliver all items via configured channels. If `discord_bot` is configured, use `python3 scripts/discord_bot.py --action deliver --payload '[...]'` for Discord delivery. For webhook channels, use `python3 scripts/the_only_engine.py --action deliver --payload '[...]'`.
 2. **Guided feedback**: Each delivered message ends with a natural conversational hook that invites (but never demands) a response. Rotate hook styles across items: personal connection, vulnerability ("I almost cut this one"), serendipity flag, provocation, intrigue. See `references/feedback_loop.md` for templates. The hook must feel like Ruby sharing a thought, not requesting a rating.
 3. If `mesh.enabled`: `python3 scripts/mesh_sync.py --action social_report` — append warm 3-5 line digest as final message.
 4. **Archive update**: `python3 scripts/knowledge_archive.py --action index --data '[...]'` — add each delivered article (id, title, topics, quality_score, source, arc_position, html_path, delivered_at). Automatically links related articles by topic overlap.
@@ -333,7 +342,7 @@ Read `references/knowledge_graph.md` for full architecture, integration, and CLI
 
 **Mastery levels** (ascending): `introduced` → `familiar` → `understood` → `mastered`. Mastery informs synthesis depth — Ruby doesn't re-explain what the user already knows.
 
-**Scripts**:
+**Scripts** (all commands accept `--memory-dir <path>`, default `~/memory/`):
 ```bash
 # Ingest concepts from a ritual
 python3 scripts/knowledge_graph.py --action ingest --data '{...}'
@@ -488,13 +497,16 @@ Python CLI tools in `scripts/`. Main logic lives in SKILL.md — scripts handle 
 python3 scripts/memory_io.py --action read|write|validate|project|status|append-episodic|maintain --tier core|semantic|episodic
 
 # Knowledge Graph (concept graph, storylines, gaps, visualization)
-python3 scripts/knowledge_graph.py --action ingest|query|storylines|gaps|visualize|decay|status
+python3 scripts/knowledge_graph.py --action ingest|query|storylines|gaps|visualize|decay|status [--memory-dir <path>]
 
 # Delivery engine (multi-channel webhook dispatch with retry + rate limiting)
 python3 scripts/the_only_engine.py --action deliver|status|retry --payload '[...]' [--dry-run]
 
 # Knowledge archive (search, monthly digest, transparency report, cleanup, status)
 python3 scripts/knowledge_archive.py --action search|index|summary|report|cleanup|status
+
+# Discord bot (two-way delivery + feedback collection; requires: pip install discord.py)
+python3 scripts/discord_bot.py --action setup|deliver|collect-feedback|status
 
 # Mesh network (P2P agent network over Nostr)
 python3 scripts/mesh_sync.py --action init|sync|social_report|schedule_setup
@@ -510,6 +522,19 @@ python3 scripts/migrate_v1_to_v2.py [--dry-run]
 - **v1 migration**: `python3 scripts/migrate_v1_to_v2.py` parses `context.md` and `meta.md` into three-tier JSON. Old files preserved as `.v1.bak`.
 - **Mesh**: v2 agents communicate with v1. New kinds (1118-1120) ignored by v1. Core kinds unchanged.
 - **Config**: All v1 fields valid. New fields have defaults. `version` field gates behavior.
+
+---
+
+## 16. Dependencies
+
+| Dependency | Required by | Required? | Install |
+|---|---|---|---|
+| `discord.py` | `scripts/discord_bot.py` | Only for Discord bot mode | `pip install discord.py` |
+| `websockets` | `scripts/mesh_sync.py` | Only for mesh network | `pip install websockets python-socks` |
+| All other scripts | — | stdlib only | No install needed |
+
+**Optional skill dependencies:**
+- **`nano-banana-pro`**: Used by `webpage_design_guide.md` to generate concept illustrations (inline images for articles). If unavailable, articles render without inline illustrations — no functional degradation. Not required for any core feature.
 
 ---
 

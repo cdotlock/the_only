@@ -97,7 +97,19 @@ python3 scripts/the_only_engine.py --action deliver --payload '[
 ]'
 ```
 
-The engine sends **each item as a separate message** to ALL configured webhooks (Telegram, Discord, Feishu, WhatsApp).
+The engine sends **each item as a separate message** to ALL configured webhooks (Telegram, Discord webhook, Feishu, WhatsApp).
+
+**Discord bot delivery** (if `discord_bot` is configured in config — preferred over webhook):
+
+```bash
+python3 scripts/discord_bot.py --action deliver --payload '[
+  {"type":"ritual_opener", "text":"Ruby'\''s Morning Edition — 2026-03-27\n..."},
+  {"type":"interactive", "url":"{BASE}/the_only_{BATCH}_001.html", "title":"Article Title 1", "arc_position":"Opening", "curation_reason":"Why this: ..."},
+  ...
+]'
+```
+
+The Discord bot sends rich Embeds with arc position labels, curation reasons, and conversational hooks. It tracks message IDs for automated feedback collection. Use bot delivery when available — it's the only channel that closes the feedback loop automatically.
 
 ### Social Digest (Final Message)
 

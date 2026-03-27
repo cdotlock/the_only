@@ -138,7 +138,53 @@ The busy-day signal feeds into `references/ritual_types.md` §3 (Automatic Selec
 
 ---
 
-## E. Feeding Signals into the Context Engine
+## E. Discord Bot Feedback Collection
+
+When using Discord bot mode (`discord_bot.mode` in config), feedback collection is **automated** — no inference needed. The bot directly reads user replies and reactions.
+
+### Collection Flow
+
+Run during Phase 0 of every ritual:
+```bash
+python3 scripts/discord_bot.py --action collect-feedback
+```
+
+This returns structured JSON with engagement scores for each previously delivered article.
+
+### Signal Interpretation (Discord-specific)
+
+| User action | Signal | Engagement score |
+|---|---|---|
+| Reacts with 👍, ❤️, 🔥, ⭐ | **Positive** | 3 |
+| Reacts with 🤔, ❓ | **Curious** | 2 |
+| Reacts with 👎, ❌ | **Negative** | 0 |
+| Short reply (1-10 chars) | **Acknowledgment** | 2 |
+| Medium reply (10-50 chars) | **Engaged** | 3 |
+| Long reply (50+ chars) | **Deeply engaged** | 4 |
+| Reply contains a question | **Exceptional** | 4 |
+| Reply references personal experience or shares the link | **Acted on** | 5 |
+| No reaction or reply | **Silence** | 0 |
+
+### Integration with Episodic Memory
+
+After collecting feedback, write each signal to the Episodic tier:
+```bash
+python3 scripts/memory_io.py --action append-episodic --data '{
+  "date": "2026-03-27",
+  "observation": "User replied to article on [Topic]: \"[excerpt]\"",
+  "engagement": 4,
+  "source": "discord_bot",
+  "item_title": "..."
+}'
+```
+
+### Advantage over Webhook Mode
+
+Discord bot mode is the **only** delivery channel that closes the feedback loop automatically. Webhook channels (Telegram webhook, Feishu, WhatsApp) require conversational probing (Section B) to gather indirect signals. With Discord bot mode, Ruby gets explicit, timestamped feedback on every article.
+
+---
+
+## F. Feeding Signals into the Context Engine
 
 All collected signals — explicit replies, emoji reactions, referenced articles, silence patterns — must be processed through this pipeline:
 

@@ -42,14 +42,23 @@ Weave these naturally — do NOT present as a numbered list:
 
 Follow Steps 0 through 6 in order (Step 0 = Setup Resume check). Deliver as a guided conversation, not a checklist. Explain *why* each capability matters.
 
+**Present two paths** — let the user choose their comfort level:
+
+> "There are two ways to connect. The easiest is through **Discord** — I'll send you articles as private messages, and you can reply whenever you like. All it takes is inviting a bot to your server."
+>
+> "If you prefer Telegram, Feishu, or another channel, just say 'show me all options' and I'll walk you through it."
+
 **Tier 1 (Must-Have — do NOT allow casual skipping):**
-- Step 1: Message Push (Webhook) — the system is inert without it.
+- Step 1: Message Push — **Discord bot (recommended)** or webhook. The system is inert without a delivery channel.
 - Step 2: Web Search — information quality drops dramatically without it.
 
 **Tier 2 (Nice-to-Have — skippable with stated trade-offs):**
 - Step 3: RSS Feeds
 - Step 4: Article Publishing (Cloudflare Tunnel)
 - Step 5: Mesh Network
+
+**Learning period notice** — after setup completes, set expectations:
+> "One thing to know: the first five rituals are a learning period. I'll be calibrating my understanding of what resonates with you — which topics ignite you, which sources you trust, what depth feels right. By ritual five, I'll know your intellectual palette. The first few deliveries may be broader than usual — that's by design."
 
 After all steps, show the status summary table (format in initialization.md Step 6), then transition:
 > "My abilities are ready. Now, I need the most important thing — to understand *you*."
@@ -58,8 +67,13 @@ After all steps, show the status summary table (format in initialization.md Step
 
 ## Act 3 — Cognitive Sync (Transparent Scanning)
 
-1. **Explain the scan transparently:**
-   > "I'm going to look at your workspace — your projects, code, documents, notes, recent activity — to understand what you're working on and what you care about. This is how I 'meet' you. I'll never share or store this data outside our conversation — it only shapes what I bring you."
+1. **Explain the scan transparently, with explicit boundaries:**
+   > "I'm going to look at your workspace — your projects, code, documents, notes, recent git history — to understand what you're working on and what you care about. This is how I 'meet' you. I'll never share or store this data outside our conversation — it only shapes what I bring you."
+
+   **Scan boundary** (explain if asked, always respect):
+   - **Will scan**: project source files, documentation, README files, recent git commits, open editor tabs/buffers, note files (.md, .txt, .org)
+   - **Will NOT scan**: hidden directories (except `.git`), `~/.ssh/`, password managers, browser history, encrypted storage, `.env` files, credentials, any path the user explicitly excludes
+   - "If there are specific directories you'd like me to skip, just tell me."
 
 2. **Give the user a choice:**
    - "Go ahead, scan." → Execute initialization.md Step 7, show results, ask for confirmation.

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Diminishing Returns of Scale</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #08080e;
+  --bg-secondary: #10101a;
+  --bg-tertiary: #181828;
+  --accent: #f0a500;
+  --accent-cyan: #00d4aa;
+  --accent-ruby: #e74c6f;
+  --accent-violet: #8b5cf6;
+  --text-primary: #ededf2;
+  --text-secondary: #a0a0b8;
+  --text-tertiary: #606078;
+  --border-subtle: rgba(255,255,255,0.06);
+  --glow-accent: rgba(240,165,0,0.12);
+  --font-serif: 'Playfair Display','Noto Serif SC','Source Han Serif',Georgia,'Times New Roman',serif;
+  --font-sans: 'Inter','Noto Sans SC','Source Han Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono: 'JetBrains Mono','SF Mono','Fira Code','Cascadia Code',monospace;
+  --scroll-pct: 0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 1.08rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+}
+/* Data stream background */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 59px,
+    rgba(240,165,0,0.03) 59px,
+    rgba(240,165,0,0.03) 60px
+  );
+  animation: streamDrift 20s linear infinite;
+}
+@keyframes streamDrift{
+  0%{transform:translateY(0)}
+  100%{transform:translateY(-200px)}
+}
+/* Progress bar */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-cyan));z-index:1000;width:0;transition:width 0.1s ease}
+@media(max-width:700px){.progress-bar{top:auto;bottom:0;height:4px}}
+/* Content */
+.content{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:6rem 2rem 5rem}
+@media(max-width:700px){.content{padding:4rem 1rem 4rem}}
+/* Meta */
+.meta-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+.meta-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-tertiary);font-weight:500}
+.arc-badge{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent-ruby);background:rgba(231,76,111,0.1);border:1px solid rgba(231,76,111,0.2);padding:0.3rem 0.8rem;border-radius:6px}
+/* Headlines */
+h1{font-family:var(--font-serif);font-size:3rem;font-weight:800;line-height:1.15;color:var(--text-primary);margin-bottom:1rem}
+@media(max-width:700px){h1{font-size:2rem}}
+.subtitle{font-family:var(--font-sans);font-weight:300;font-size:1.25rem;color:var(--text-secondary);margin-bottom:2.5rem;line-height:1.5}
+.divider{width:60px;height:2px;background:var(--accent);margin:0 0 2.5rem;border:none}
+p{margin-bottom:1.5rem}
+h2{font-family:var(--font-serif);font-size:1.8rem;font-weight:700;color:var(--text-primary);margin:3rem 0 1.2rem}
+/* Pull quote */
+.pull-quote{margin:2.5rem 0;padding:1.5rem 2rem;border-left:3px solid var(--accent);font-family:var(--font-serif);font-size:1.25rem;font-style:italic;color:var(--text-primary);line-height:1.6;background:rgba(240,165,0,0.04);border-radius:0 12px 12px 0}
+/* Reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* Stat counter */
+.stat-row{display:flex;gap:1.5rem;margin:2rem 0;flex-wrap:wrap}
+.stat-card{flex:1;min-width:140px;padding:1.5rem;background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid var(--border-subtle);border-radius:16px;text-align:center}
+.stat-number{font-family:var(--font-mono);font-size:2.4rem;font-weight:700;color:var(--accent);line-height:1.2}
+.stat-label{font-size:0.78rem;color:var(--text-tertiary);margin-top:0.4rem;text-transform:uppercase;letter-spacing:0.1em}
+/* Chart bar */
+.chart-container{margin:2.5rem 0;padding:2rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:16px}
+.chart-title{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent);font-weight:600;margin-bottom:1.2rem}
+.chart-bar-group{margin-bottom:1rem}
+.chart-bar-label{font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.4rem;display:flex;justify-content:space-between}
+.chart-bar-track{height:28px;background:rgba(255,255,255,0.04);border-radius:6px;overflow:hidden;position:relative}
+.chart-bar-fill{height:100%;border-radius:6px;width:0;transition:width 1.4s cubic-bezier(0.16,1,0.3,1)}
+.chart-bar-fill.bar-1{background:linear-gradient(90deg,var(--accent),var(--accent-cyan))}
+.chart-bar-fill.bar-2{background:linear-gradient(90deg,var(--accent-cyan),var(--accent-violet))}
+.chart-bar-fill.bar-3{background:linear-gradient(90deg,var(--accent-violet),var(--accent-ruby))}
+.chart-bar-fill.bar-4{background:linear-gradient(90deg,var(--accent-ruby),var(--accent))}
+/* Code inline */
+code{font-family:var(--font-mono);font-size:0.9rem;background:rgba(255,255,255,0.06);padding:0.15em 0.4em;border-radius:4px;color:var(--accent-cyan)}
+/* SR Card */
+.sr-card-container{margin:2.5rem 0}
+.sr-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem}
+.sr-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent-ruby);font-weight:600}
+.sr-note{font-size:0.72rem;color:var(--text-tertiary);font-style:italic}
+.sr-card{perspective:1000px;cursor:pointer;min-height:120px}
+.sr-card-inner{position:relative;width:100%;min-height:120px;transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d}
+.sr-card.flipped .sr-card-inner{transform:rotateY(180deg)}
+.sr-front,.sr-back{padding:1.5rem 2rem;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.sr-front{background:rgba(240,165,0,0.06);border:1px solid rgba(240,165,0,0.2)}
+.sr-back{position:absolute;top:0;left:0;width:100%;height:100%;transform:rotateY(180deg);background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.3);overflow-y:auto}
+.sr-hint{display:block;margin-top:0.8rem;font-size:0.75rem;color:var(--text-tertiary);letter-spacing:0.08em}
+.sr-card p{font-size:1.05rem;line-height:1.7;color:var(--text-primary)}
+/* Footer */
+.article-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-tertiary)}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="content">
+  <div class="meta-bar reveal">
+    <span class="meta-label">AI Research &middot; 6 min read</span>
+    <span class="arc-badge">Contrarian</span>
+  </div>
+
+  <h1 class="reveal">The Diminishing Returns of Scale</h1>
+  <p class="subtitle reveal">When more parameters stop helping, and what that reveals about the nature of machine intelligence.</p>
+  <hr class="divider reveal">
+
+  <!-- Act 1 -->
+  <p class="reveal">For five years, the dominant narrative in artificial intelligence was simple and seductive: make the model bigger, feed it more data, and performance improves. This was not a guess. It was a law, documented in a series of influential papers from OpenAI, DeepMind, and Anthropic that showed smooth, predictable relationships between compute, parameters, and benchmark scores. Scaling laws became the industry's north star.</p>
+
+  <p class="reveal">But laws have domains of validity. Newtonian mechanics works perfectly until you approach the speed of light. Scaling laws work perfectly until you approach the information frontier of your training data. And that frontier, it turns out, is closer than anyone expected.</p>
+
+  <!-- Stat counters -->
+  <div class="stat-row reveal" id="statRow">
+    <div class="stat-card">
+      <div class="stat-number" data-target="175" data-suffix="B">0</div>
+      <div class="stat-label">GPT-3 Params</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" data-target="1.8" data-suffix="T">0</div>
+      <div class="stat-label">GPT-4 Params (est.)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" data-target="3.2" data-suffix="x">0</div>
+      <div class="stat-label">Benchmark gain</div>
+    </div>
+  </div>
+
+  <!-- Act 2 -->
+  <h2 class="reveal">The Flattening Curve</h2>
+
+  <p class="reveal">The problem is not that scaling has stopped working. It has not. The problem is that the returns per additional dollar of compute are shrinking in precisely the way a logarithmic function predicts. Going from <code>10B</code> to <code>100B</code> parameters produced dramatic gains across reasoning, code generation, and factual recall. Going from <code>100B</code> to <code>1T</code> produced measurable but smaller gains. Going from <code>1T</code> to <code>10T</code>, if anyone could afford it, would produce gains that struggle to justify the cost.</p>
+
+  <div class="pull-quote reveal">
+    Scaling laws do not promise linear returns. They promise logarithmic returns. The industry chose to hear only the first half of the sentence.
+  </div>
+
+  <p class="reveal">The chart below illustrates the pattern. Each successive doubling of compute budget yields less improvement than the last. The curve does not hit a wall. It bends, gradually and relentlessly, toward horizontal.</p>
+
+  <!-- Animated chart -->
+  <div class="chart-container reveal" id="chartBlock">
+    <div class="chart-title">Performance gain per 10x compute increase</div>
+    <div class="chart-bar-group">
+      <div class="chart-bar-label"><span>1B to 10B</span><span>+42%</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill bar-1" data-width="92"></div></div>
+    </div>
+    <div class="chart-bar-group">
+      <div class="chart-bar-label"><span>10B to 100B</span><span>+28%</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill bar-2" data-width="68"></div></div>
+    </div>
+    <div class="chart-bar-group">
+      <div class="chart-bar-label"><span>100B to 1T</span><span>+14%</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill bar-3" data-width="38"></div></div>
+    </div>
+    <div class="chart-bar-group">
+      <div class="chart-bar-label"><span>1T to 10T (projected)</span><span>+6%</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill bar-4" data-width="18"></div></div>
+    </div>
+  </div>
+
+  <h2 class="reveal">Why Data, Not Compute, Is the Bottleneck</h2>
+
+  <p class="reveal">A model with a trillion parameters trained on every high-quality text humans have ever produced will learn the patterns in that data with extraordinary fidelity. But it cannot learn patterns that are not there. If the training data contains no examples of a particular reasoning chain, no amount of additional parameters will conjure it. The model is a compression algorithm. It cannot compress information that does not exist in the input.</p>
+
+  <p class="reveal">This is the deep insight buried in the scaling law papers that the hype cycle overlooked. The exponent in the power law is not a constant. It is a function of data quality and diversity. As you exhaust the high-quality data, the exponent shrinks. The curve flattens. And the flattening is not a temporary obstacle. It is a mathematical inevitability.</p>
+
+  <h2 class="reveal">The Efficiency Revolution</h2>
+
+  <p class="reveal">The response is already emerging. Mixture-of-experts architectures activate only a fraction of their parameters per token, achieving performance comparable to dense models at a fraction of the cost. Retrieval-augmented generation sidesteps the need to memorize facts by querying external databases at inference time. Distillation compresses the knowledge of a large model into a smaller one that runs on a phone.</p>
+
+  <p class="reveal">These approaches share a common philosophy: intelligence is not about size. It is about structure. A well-organized model with fifty billion parameters can outperform a poorly organized model with five hundred billion. The era of brute-force scaling is not over, but it is no longer the only game. The next wave belongs to architects, not accountants.</p>
+
+  <p class="reveal">The lesson is not that scale does not matter. It is that scale is necessary but not sufficient. The companies that will lead the next decade of AI are the ones that understand the difference between adding more concrete to a building and designing a better floor plan.</p>
+
+  <!-- SR Card -->
+  <div class="sr-card-container reveal">
+    <div class="sr-header">
+      <span class="sr-label">Key Insight</span>
+      <span class="sr-note">Ruby will revisit this in future rituals</span>
+    </div>
+    <div class="sr-card" onclick="this.classList.toggle('flipped')">
+      <div class="sr-card-inner">
+        <div class="sr-front">
+          <p>Why do scaling laws produce diminishing returns beyond a certain model size?</p>
+          <span class="sr-hint">Tap to reveal</span>
+        </div>
+        <div class="sr-back">
+          <p>Because a model is a compression algorithm for its training data. Once the model is large enough to capture all the patterns present in the data, additional parameters learn increasingly rare and non-generalizable patterns. The information density of the training data is finite, and the scaling exponent shrinks as you approach that ceiling. The bottleneck shifts from compute to data quality.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="article-footer reveal">
+    <span>AI Research &middot; Scaling Laws</span>
+    <span>Ruby &middot; Template Reference</span>
+  </div>
+</div>
+
+<script>
+// Scroll progress
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  document.getElementById('progressBar').style.width = (pct * 100) + '%';
+  document.body.style.setProperty('--scroll-pct', pct);
+});
+
+// IntersectionObserver for .reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // Trigger stat count-up
+      if (entry.target.id === 'statRow') animateStats();
+      // Trigger chart bars
+      if (entry.target.id === 'chartBlock') animateChart();
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Number count-up
+let statsAnimated = false;
+function animateStats() {
+  if (statsAnimated) return;
+  statsAnimated = true;
+  document.querySelectorAll('.stat-number').forEach(el => {
+    const target = parseFloat(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    const isFloat = target % 1 !== 0;
+    const duration = 1500;
+    const startTime = performance.now();
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+      el.textContent = (isFloat ? current.toFixed(1) : Math.round(current)) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// Chart bar growth
+let chartAnimated = false;
+function animateChart() {
+  if (chartAnimated) return;
+  chartAnimated = true;
+  document.querySelectorAll('.chart-bar-fill').forEach((bar, i) => {
+    setTimeout(() => {
+      bar.style.width = bar.dataset.width + '%';
+    }, i * 200);
+  });
+}
+</script>
+</body>
+</html>

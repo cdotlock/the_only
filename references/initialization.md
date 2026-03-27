@@ -31,16 +31,40 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 
 ---
 
-## Step 1: Message Push Configuration (Webhooks) `[REQUIRED]`
+## Step 1: Message Push Configuration `[REQUIRED]`
 
-> "For me to deliver your daily insights, I need a way to reach you. Where do you prefer to receive messages?"
+> "For me to deliver your daily insights, I need a way to reach you."
 
-**1a. Ask which platform(s) the user uses:**
+### Option A: Discord Bot (Recommended)
 
-- Telegram, Discord, WhatsApp, or Feishu
-- The user may choose one or multiple. If they have no preference, recommend **Telegram** (best support for rich text and links).
+Discord bot mode is the most powerful option — it supports **two-way interaction**: Ruby sends articles, and you can reply directly to give feedback. This closes the feedback loop and makes Ruby smarter over time.
 
-**1b. Guide webhook setup for each chosen platform:**
+**Setup guide:**
+
+1. "First, let's create your bot on Discord."
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications) → "New Application" → name it "Ruby" (or your chosen name)
+   - Go to "Bot" tab → click "Reset Token" → **copy the token** (you'll need it in a moment)
+   - Under "Privileged Gateway Intents", enable **Message Content Intent**
+   - Go to "OAuth2" → "URL Generator" → select scopes: `bot` → select permissions: `Send Messages`, `Read Message History`, `Add Reactions`, `Embed Links`
+   - Copy the generated URL → open it in browser → invite the bot to your server
+
+2. "Now I need to know how you'd like to receive articles."
+   - **DM mode** (default, most private): Ruby sends you private messages. You'll need your Discord User ID — enable Developer Mode in Discord settings → right-click yourself → "Copy User ID".
+   - **Channel mode**: Ruby posts in a dedicated channel. Create a `#ruby` channel → right-click it → "Copy Channel ID".
+
+3. Run setup:
+   ```bash
+   python3 scripts/discord_bot.py --action setup
+   ```
+   Follow the prompts to enter your token, mode, and IDs.
+
+4. **Verify**: The setup script sends a test message automatically. Confirm you received it.
+
+Store: `discord_bot.token`, `discord_bot.mode` ("dm"|"channel"), `discord_bot.user_id` or `discord_bot.channel_id` in config.
+
+### Option B: Webhook (Simple, One-Way)
+
+Webhooks are simpler but one-way — Ruby can send articles but can't hear you reply. Good if you just want a read-only feed.
 
 **Telegram:**
 
@@ -49,10 +73,11 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 3. "Now I need your Chat ID so I know where to send messages." Guide: forward a message to `@userinfobot` or use `@RawDataBot` to get their chat ID.
 4. Store: `webhooks.telegram` = `https://api.telegram.org/bot<TOKEN>/sendMessage`, `telegram_chat_id` = `<CHAT_ID>`.
 
-**Discord:**
+**Discord Webhook (legacy):**
 
 1. "Go to your server settings → Integrations → Webhooks → New Webhook. Copy the webhook URL."
 2. Store: `webhooks.discord` = the webhook URL.
+3. Note: This is one-way only. For two-way interaction, use Option A instead.
 
 **Feishu:**
 
@@ -64,11 +89,15 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 1. Note: WhatsApp webhook requires a Business API setup. If the user has one, collect the URL. If not, suggest an alternative platform.
 2. Store: `webhooks.whatsapp` = the webhook URL.
 
-**1c. Verify immediately:**
+### Verification (all options)
 
-Send a test message through the delivery engine:
+Send a test message through the appropriate delivery path:
 
 ```bash
+# Discord bot mode:
+python3 scripts/discord_bot.py --action deliver --payload '[{"type":"interactive","title":"🎉 Connection Test — Your first message from Ruby","url":""}]'
+
+# Webhook mode:
 python3 scripts/the_only_engine.py --action deliver --payload '[{"type":"interactive","title":"🎉 Connection Test — Your first message from Ruby","url":""}]'
 ```
 
