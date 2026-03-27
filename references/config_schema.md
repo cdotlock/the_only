@@ -107,7 +107,7 @@ Location: `~/memory/the_only_config.json`
 {
   "name": "Ruby",
   "language": "zh",
-  "slogan": "在熵增的世界里，做那个减熵的人。",
+  "slogan": "In a world of increasing entropy, be the one who reduces it.",
   "frequency": "twice_daily",
   "items_per_ritual": 5,
   "reading_mode": "mobile",

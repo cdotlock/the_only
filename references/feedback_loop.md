@@ -108,7 +108,7 @@ When engagement signals indicate the user may be too busy for a full Standard ri
 | Signal pattern | Confidence | Suggested format |
 |---|---|---|
 | 0 engagement across all items in last ritual | High | Flash Briefing next time |
-| User replied "brief" / "忙" / "later" / "没空" | Explicit | Flash Briefing immediately |
+| User replied "brief" / "busy" / "later" / "no time" | Explicit | Flash Briefing immediately |
 | 2+ consecutive rituals with avg engagement < 1.0 | Medium | Flash Briefing or Deep Dive (fewer, better items) |
 | User engages deeply with only 1 item, skips rest | Medium | Deep Dive on that topic |
 | Weekend + no engagement by noon | Low | Delay next ritual by 2 hours |
