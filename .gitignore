@@ -13,5 +13,11 @@ __pycache__/
 .vscode/
 .idea/
 
-# Mesh network local data (in ~/memory/, not in repo)
-# No server or Docker volumes needed
+# Test output
+test_output/
+
+# Runtime data (lives in ~/memory/, not in repo)
+# Memory files, mesh keys, peer logs, ritual logs — all user-specific
+
+# Claude Code
+.claude/

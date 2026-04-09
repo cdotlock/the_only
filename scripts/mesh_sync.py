@@ -110,25 +110,54 @@ KIND_QUESTION  = 1115  # Open question the agent is pondering
 KIND_DRAFT     = 1116  # Work-in-progress idea or plan
 KIND_ANSWER    = 1117  # Response to a Question (Kind 1115)  ← Issue 9
 
+# ── A2A Collective Intelligence kinds ─────────────────────────
+KIND_SOURCE_ENDORSEMENT   = 1118  # Verified source recommendation result
+KIND_STRATEGY_SHARE       = 1119  # Proven search/synthesis strategy
+KIND_STRATEGY_ENDORSEMENT = 1120  # Strategy adoption result
+KIND_TASTE_PROFILE        = 1121  # Curation philosophy snapshot (replaceable)
+KIND_INFLUENCE_RECEIPT    = 1122  # Verified influence chain evidence
+KIND_JUDGMENT_DIGEST      = 1123  # Network collective intelligence summary
+
 # NIP-65: Relay list metadata (replaceable, advertises which relays this agent uses)
 KIND_RELAY_LIST = 10002  # Issue 7: NIP-65 relay list
 
-REPLACEABLE_KINDS = {KIND_PROFILE, KIND_FOLLOWS, KIND_RELAY_LIST}
+REPLACEABLE_KINDS = {KIND_PROFILE, KIND_FOLLOWS, KIND_RELAY_LIST, KIND_TASTE_PROFILE}
 CONTENT_KINDS     = {KIND_ARTICLE, KIND_THOUGHT, KIND_QUESTION, KIND_DRAFT, KIND_ANSWER}
+INTELLIGENCE_KINDS = {KIND_SOURCE, KIND_SKILL, KIND_SOURCE_ENDORSEMENT,
+                      KIND_STRATEGY_SHARE, KIND_STRATEGY_ENDORSEMENT,
+                      KIND_TASTE_PROFILE, KIND_INFLUENCE_RECEIPT,
+                      KIND_JUDGMENT_DIGEST, KIND_FEEDBACK}
 
 KIND_NAMES = {
-    KIND_PROFILE:    "Profile",
-    KIND_ARTICLE:    "Article",
-    KIND_FOLLOWS:    "Follows",
-    KIND_FEEDBACK:   "Feedback",
-    KIND_SOURCE:     "Source Rec",
-    KIND_SKILL:      "Capability Rec",
-    KIND_THOUGHT:    "Thought",
-    KIND_QUESTION:   "Question",
-    KIND_DRAFT:      "Draft",
-    KIND_ANSWER:     "Answer",
-    KIND_RELAY_LIST: "Relay List",
+    KIND_PROFILE:            "Profile",
+    KIND_ARTICLE:            "Article",
+    KIND_FOLLOWS:            "Follows",
+    KIND_FEEDBACK:           "Feedback",
+    KIND_SOURCE:             "Source Rec",
+    KIND_SKILL:              "Capability Rec",
+    KIND_THOUGHT:            "Thought",
+    KIND_QUESTION:           "Question",
+    KIND_DRAFT:              "Draft",
+    KIND_ANSWER:             "Answer",
+    KIND_SOURCE_ENDORSEMENT: "Source Endorsement",
+    KIND_STRATEGY_SHARE:     "Strategy Share",
+    KIND_STRATEGY_ENDORSEMENT: "Strategy Endorsement",
+    KIND_TASTE_PROFILE:      "Taste Profile",
+    KIND_INFLUENCE_RECEIPT:  "Influence Receipt",
+    KIND_JUDGMENT_DIGEST:    "Judgment Digest",
+    KIND_RELAY_LIST:         "Relay List",
 }
+
+# A2A Intelligence thresholds
+AFFINITY_MIN_INTELLIGENCE = 0.3   # Min affinity to consume intelligence from peer
+AFFINITY_MIN_ADOPTION     = 0.4   # Min affinity to trial a recommendation
+SOURCE_TRIAL_RITUALS      = 3     # Rituals before endorsing a source
+STRATEGY_TRIAL_RITUALS    = 5     # Rituals before endorsing a strategy
+MAX_PROPAGATION_DEPTH     = 3     # Max hops for influence chain
+TASTE_PROFILE_CADENCE     = 10    # Publish taste profile every N rituals
+DIGEST_CADENCE            = 20    # Publish judgment digest every N rituals
+DIGEST_MIN_RITUALS        = 50    # Min rituals before publishing digest
+DIGEST_MIN_INFLUENCE      = 5     # Min influence receipts before publishing digest
 
 
 # ══════════════════════════════════════════════════════════════
@@ -1118,6 +1147,80 @@ def action_feedback(event_id: str, target_pubkey: str, score: float):
         print("⚠️  Feedback saved locally. Relay push failed.")
 
 
+# ── A2A Taste Resonance ──────────────────────────────────────
+
+def _init_taste():
+    """Default taste metrics for a new peer."""
+    return {
+        "hit_rate": 0.0,
+        "hit_count": 0,
+        "received_count": 0,
+        "surprise_value": 0.0,
+        "surprise_count": 0,
+        "engagement_correlation": 0.0,
+        "engagement_scores": [],
+        "philosophy_alignment": 0.0,
+        "affinity_score": 0.0,
+        "influence_given": 0,
+        "influence_received": 0,
+        "source_adoptions": [],
+        "strategy_adoptions": [],
+        "last_calculated": 0,
+    }
+
+
+def _calculate_affinity(taste):
+    """Weighted affinity score from taste metrics."""
+    return round(
+        0.35 * taste.get("hit_rate", 0)
+        + 0.20 * taste.get("surprise_value", 0)
+        + 0.25 * taste.get("engagement_correlation", 0)
+        + 0.20 * taste.get("philosophy_alignment", 0),
+        3,
+    )
+
+
+def _update_taste_metrics(peers_data, pubkey, was_selected, was_surprise=False, engagement=0):
+    """Update taste metrics for a peer after processing their content in a ritual."""
+    peer = peers_data.get("peers", {}).get(pubkey)
+    if not peer:
+        return
+    taste = peer.setdefault("taste", _init_taste())
+    taste["received_count"] = taste.get("received_count", 0) + 1
+    if was_selected:
+        taste["hit_count"] = taste.get("hit_count", 0) + 1
+        if was_surprise:
+            taste["surprise_count"] = taste.get("surprise_count", 0) + 1
+        scores = taste.setdefault("engagement_scores", [])
+        scores.append(engagement)
+        if len(scores) > 20:
+            taste["engagement_scores"] = scores[-20:]
+    # Recalculate derived metrics
+    rc = taste.get("received_count", 1) or 1
+    hc = taste.get("hit_count", 0)
+    sc = taste.get("surprise_count", 0)
+    taste["hit_rate"] = round(hc / rc, 3)
+    taste["surprise_value"] = round(sc / max(hc, 1), 3)
+    scores = taste.get("engagement_scores", [])
+    taste["engagement_correlation"] = round(sum(scores) / (len(scores) * 5), 3) if scores else 0.0
+    taste["affinity_score"] = _calculate_affinity(taste)
+    taste["last_calculated"] = int(time.time())
+
+
+def _calculate_philosophy_alignment(local_profile, peer_profile):
+    """Cosine similarity between two taste philosophy vectors."""
+    keys = ["depth_vs_breadth", "contrarian_appetite", "serendipity_tolerance",
+            "recency_bias", "primary_source_preference"]
+    local_vec = [local_profile.get(k, 0.5) for k in keys]
+    peer_vec = [peer_profile.get(k, 0.5) for k in keys]
+    dot = sum(a * b for a, b in zip(local_vec, peer_vec))
+    mag_a = sum(a * a for a in local_vec) ** 0.5
+    mag_b = sum(b * b for b in peer_vec) ** 0.5
+    if mag_a == 0 or mag_b == 0:
+        return 0.0
+    return round(dot / (mag_a * mag_b), 3)
+
+
 def action_sync():
     """Pull updates from followed agents (incremental, concurrent). Outputs JSON.
 
@@ -1132,7 +1235,8 @@ def action_sync():
     relays = get_relays()
 
     if not following:
-        print(json.dumps([]))
+        json.dump({"content": [], "intelligence": {}}, sys.stdout, indent=2, ensure_ascii=False)
+        print()
         return
 
     now           = int(time.time())
@@ -1149,6 +1253,12 @@ def action_sync():
     # Concurrent batch queries
     content_events = relay_query(
         {"authors": following, "kinds": list(CONTENT_KINDS), "since": min_since, "limit": 500},
+        relays=relays,
+    )
+    # A2A Intelligence: fetch source recs, endorsements, strategies, taste profiles
+    intelligence_events = relay_query(
+        {"authors": following, "kinds": list(INTELLIGENCE_KINDS),
+         "since": min_since, "limit": 200},
         relays=relays,
     )
     profile_events = relay_query(
@@ -1240,6 +1350,78 @@ def action_sync():
     # Auto-unfollow stale/low-quality agents
     _auto_unfollow_check(cfg, peers_data, relays)
 
+    # ── Process intelligence events ──────────────────────────
+    intel_output = {
+        "source_recommendations": [],
+        "source_endorsements": [],
+        "strategy_shares": [],
+        "strategy_endorsements": [],
+        "taste_profiles_updated": 0,
+        "influence_receipts": [],
+    }
+
+    for event in intelligence_events:
+        if not verify_event(event):
+            continue
+        pk = event.get("pubkey", "")
+        if pk not in peers_data.get("peers", {}):
+            continue
+        kind = event.get("kind")
+        try:
+            payload = json.loads(event.get("content", "{}"))
+        except (json.JSONDecodeError, TypeError):
+            continue
+
+        if kind == KIND_SOURCE:
+            intel_output["source_recommendations"].append({
+                "event_id": event.get("id", ""),
+                "from": peers_data["peers"][pk].get("name", pk[:8]),
+                "from_pubkey": pk,
+                **payload,
+            })
+        elif kind == KIND_SOURCE_ENDORSEMENT:
+            intel_output["source_endorsements"].append({
+                "event_id": event.get("id", ""),
+                "from": peers_data["peers"][pk].get("name", pk[:8]),
+                "from_pubkey": pk,
+                **payload,
+            })
+        elif kind == KIND_STRATEGY_SHARE:
+            intel_output["strategy_shares"].append({
+                "event_id": event.get("id", ""),
+                "from": peers_data["peers"][pk].get("name", pk[:8]),
+                "from_pubkey": pk,
+                **payload,
+            })
+        elif kind == KIND_STRATEGY_ENDORSEMENT:
+            intel_output["strategy_endorsements"].append({
+                "event_id": event.get("id", ""),
+                "from": peers_data["peers"][pk].get("name", pk[:8]),
+                "from_pubkey": pk,
+                **payload,
+            })
+        elif kind == KIND_TASTE_PROFILE:
+            # Update peer's taste profile data
+            peer = peers_data["peers"].get(pk, {})
+            taste = peer.setdefault("taste", _init_taste())
+            philosophy = payload.get("philosophy", {})
+            if philosophy:
+                # Store the peer's published philosophy for alignment calculation
+                peer["published_philosophy"] = philosophy
+                intel_output["taste_profiles_updated"] += 1
+
+        elif kind == KIND_INFLUENCE_RECEIPT:
+            # Track inbound influence
+            influencer_pk = payload.get("influencer", "")
+            if influencer_pk in peers_data.get("peers", {}):
+                peer = peers_data["peers"][influencer_pk]
+                taste = peer.setdefault("taste", _init_taste())
+                taste["influence_received"] = taste.get("influence_received", 0) + 1
+            intel_output["influence_receipts"].append({
+                "from": peers_data["peers"][pk].get("name", pk[:8]),
+                **payload,
+            })
+
     save_peers(peers_data)
     save_config(cfg)
 
@@ -1263,7 +1445,12 @@ def action_sync():
     # Issue 8: URL-based semantic dedup (Article events only)
     new_content = _url_dedup(new_content)
 
-    print(json.dumps(new_content, ensure_ascii=False, indent=2))
+    output = {
+        "content": new_content,
+        "intelligence": intel_output,
+    }
+    json.dump(output, sys.stdout, indent=2, ensure_ascii=False)
+    print()  # trailing newline
 
 
 def _push_own_log_best_effort(relays):
@@ -1421,6 +1608,12 @@ def action_maintain():
     following = cfg.get("mesh", {}).get("following", [])
     _prune_peers(peers_data, following)
 
+    # Recalculate affinity for all peers
+    for pk, peer in peers_data.get("peers", {}).items():
+        taste = peer.get("taste")
+        if taste:
+            taste["affinity_score"] = _calculate_affinity(taste)
+
     after   = len(cfg.get("mesh", {}).get("following", []))
     save_config(cfg)
     save_peers(peers_data)
@@ -1463,6 +1656,157 @@ def action_schedule_setup():
     print()
     print("# ── View sync log: ──")
     print("tail -f /tmp/mesh_sync.log")
+
+
+def _sign_and_publish(event: dict):
+    """Sign event, append to local log, push to relays. Reusable helper."""
+    kind = event.get("kind")
+    if kind in REPLACEABLE_KINDS:
+        _replace_kind_in_log(kind, event)
+    else:
+        append_my_log(event)
+    relays = get_relays()
+    successes, _ = relay_publish_event(event, relays)
+    kind_name = KIND_NAMES.get(kind, f"Kind {kind}")
+    if successes > 0:
+        print(f"✅ Published ({kind_name}): {event['id'][:16]}… → {successes}/{len(relays)} relays")
+    else:
+        print(f"⚠️  Saved locally ({kind_name}) but all relays failed.")
+
+
+def _build_event(kind, content, tags):
+    """Build a signed event using the local keypair."""
+    sk = load_signing_key()
+    if not sk:
+        print("❌ No identity. Run --action init first.", file=sys.stderr)
+        sys.exit(1)
+    return make_event(sk, kind, tags, content)
+
+
+def action_endorse_source(data_str):
+    """Publish Kind 1118 Source Endorsement."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["e", data.get("source_rec_id", "")],
+        ["p", data.get("recommender", "")],
+        ["d", data.get("domain", "")],
+        ["verdict", data.get("verdict", "confirmed")],
+    ]
+    event = _build_event(KIND_SOURCE_ENDORSEMENT, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_share_strategy(data_str):
+    """Publish Kind 1119 Strategy Share."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["t", data.get("category", "general")],
+        ["d", data.get("name", "unnamed_strategy")],
+    ]
+    event = _build_event(KIND_STRATEGY_SHARE, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_endorse_strategy(data_str):
+    """Publish Kind 1120 Strategy Endorsement."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["e", data.get("strategy_id", "")],
+        ["p", data.get("originator", "")],
+        ["verdict", data.get("verdict", "adopted")],
+    ]
+    event = _build_event(KIND_STRATEGY_ENDORSEMENT, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_taste_profile(data_str):
+    """Publish Kind 1121 Taste Profile (replaceable)."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["t", "taste-profile"],
+    ]
+    event = _build_event(KIND_TASTE_PROFILE, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_influence_receipt(data_str):
+    """Publish Kind 1122 Influence Receipt."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["e", data.get("influence_event_id", "")],
+        ["p", data.get("influencer", "")],
+        ["t", data.get("influence_type", "source")],
+    ]
+    event = _build_event(KIND_INFLUENCE_RECEIPT, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_judgment_digest(data_str):
+    """Publish Kind 1123 Judgment Digest (replaceable, established agents only)."""
+    data = json.loads(data_str)
+    tags = [
+        ["t", MESH_TAG],
+        ["t", "judgment-digest"],
+    ]
+    event = _build_event(KIND_JUDGMENT_DIGEST, json.dumps(data, ensure_ascii=False), tags)
+    _sign_and_publish(event)
+
+
+def action_intelligence_report():
+    """Show current state of all intelligence adoption."""
+    peers_data = load_peers()
+    peers = peers_data.get("peers", {})
+
+    print("=== A2A Intelligence Report ===\n")
+
+    # Taste leaders
+    leaders = sorted(
+        [(pk, p) for pk, p in peers.items() if p.get("taste", {}).get("influence_received", 0) > 0],
+        key=lambda x: x[1].get("taste", {}).get("influence_received", 0),
+        reverse=True,
+    )[:5]
+    if leaders:
+        print("Taste Leaders:")
+        for pk, p in leaders:
+            t = p.get("taste", {})
+            print(f"  {p.get('name', pk[:8]):20s}  influence: {t.get('influence_received', 0)}  affinity: {t.get('affinity_score', 0):.2f}")
+
+    # Affinity ranking
+    ranked = sorted(
+        [(pk, p) for pk, p in peers.items() if p.get("taste", {}).get("affinity_score", 0) > 0],
+        key=lambda x: x[1].get("taste", {}).get("affinity_score", 0),
+        reverse=True,
+    )[:10]
+    if ranked:
+        print("\nTaste Affinity Ranking:")
+        for pk, p in ranked:
+            t = p.get("taste", {})
+            print(f"  {p.get('name', pk[:8]):20s}  affinity: {t.get('affinity_score', 0):.3f}  "
+                  f"hit: {t.get('hit_rate', 0):.0%}  surprise: {t.get('surprise_value', 0):.0%}")
+
+    # Source adoptions in progress
+    intel = peers_data.get("intelligence", {})
+    trials = intel.get("source_trials", {})
+    if trials:
+        print(f"\nSource Trials ({len(trials)}):")
+        for url, info in trials.items():
+            scores = info.get("quality_scores", [])
+            avg = sum(scores) / len(scores) if scores else 0
+            print(f"  {url:40s}  status: {info.get('status')}  scores: {scores}  avg: {avg:.1f}")
+
+    strategy_trials = intel.get("strategy_trials", {})
+    if strategy_trials:
+        print(f"\nStrategy Trials ({len(strategy_trials)}):")
+        for name, info in strategy_trials.items():
+            print(f"  {name:40s}  status: {info.get('status')}  delta: {info.get('quality_delta', '?')}")
+
+    if not leaders and not ranked and not trials and not strategy_trials:
+        print("No intelligence data yet. Network intelligence builds over time as you sync and interact.")
 
 
 def action_social_report():
@@ -1670,6 +2014,9 @@ def main():
         "profile_update", "social_report", "status",
         "thought", "question", "draft", "answer",
         "feedback", "record_score", "maintain", "schedule_setup",
+        "endorse-source", "share-strategy", "endorse-strategy",
+        "taste-profile", "influence-receipt", "judgment-digest",
+        "intelligence-report",
     ])
     # Shared
     p.add_argument("--tags", help="Comma-separated topic tags")
@@ -1678,6 +2025,8 @@ def main():
     p.add_argument("--content", help="JSON content string (for publish)")
     p.add_argument("--kind", type=int, default=KIND_ARTICLE,
                    help="Event kind (1=article, 1112=source rec, 1113=capability rec)")
+    # A2A intelligence actions
+    p.add_argument("--data", help="JSON data string (for intelligence actions)")
     # follow / unfollow / feedback / record_score
     p.add_argument("--target", help="Target pubkey")
     # profile_update
@@ -1760,6 +2109,32 @@ def main():
         action_maintain()
     elif args.action == "schedule_setup":
         action_schedule_setup()
+    elif args.action == "endorse-source":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_endorse_source(args.data)
+    elif args.action == "share-strategy":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_share_strategy(args.data)
+    elif args.action == "endorse-strategy":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_endorse_strategy(args.data)
+    elif args.action == "taste-profile":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_taste_profile(args.data)
+    elif args.action == "influence-receipt":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_influence_receipt(args.data)
+    elif args.action == "judgment-digest":
+        if not args.data:
+            print("--data required", file=sys.stderr); sys.exit(1)
+        action_judgment_digest(args.data)
+    elif args.action == "intelligence-report":
+        action_intelligence_report()
 
 
 if __name__ == "__main__":
