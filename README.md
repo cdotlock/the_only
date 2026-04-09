@@ -67,8 +67,8 @@ pip install websockets python-socks
 ```
 SKILL.md                    # Core identity + phase router (injected into LLM context)
 references/
-  phases/                   # 7 self-contained execution phases (00-06)
-  *.md                      # Deep reference docs (schemas, protocols, design guides)
+  0X_*.md                   # 7 self-contained execution phases (00-06)
+  *.md                      # Deep reference docs (schemas, protocols)
   templates/                # HTML design inspiration
 scripts/
   the_only_engine.py        # Guardian + delivery engine

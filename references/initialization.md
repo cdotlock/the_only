@@ -477,7 +477,7 @@ Use the user's chosen name, frequency, item count, and reading mode from Act 1. 
 
 ## Step 9: Initialize the Three-Tier Memory
 
-Read `references/context_engine_v2.md` for the full schema. Initialize three-tier JSON memory:
+Read `references/context_engine.md` for the full schema. Initialize three-tier JSON memory:
 
 ```bash
 # Create core identity from what you learned in Steps 7-8

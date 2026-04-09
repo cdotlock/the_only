@@ -1,4 +1,4 @@
-# Context Engine v2 — Three-Tier Memory Reference
+# Context Engine — Three-Tier Memory Reference
 
 > **When to read**: Before Maintenance Cycles, when Episodic buffer nears capacity, or when updating any memory tier.
 
@@ -311,7 +311,7 @@ During Maintenance Cycles, analyze the knowledge graph for:
 2. **Overexposed concepts**: Concepts at "familiar" for 10+ rituals without progressing. Either the synthesis isn't deep enough or the user isn't actually interested — investigate.
 3. **Isolated concepts**: High-mastery concepts with no edges to other high-mastery concepts. The user has siloed knowledge — a cross-domain article could connect them.
 
-Feed these into ritual type selection (see `references/ritual_types.md` §3).
+Feed these into ritual type selection (see `references/00_preflight.md` §0.5).
 
 ---
 

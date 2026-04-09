@@ -104,17 +104,17 @@ Execute phases 0-6 in strict sequence. Each phase feeds the next — skipping de
 
 | Phase | Purpose | Read |
 |-------|---------|------|
-| **0 Pre-Flight** | Load context, health check, crash recovery, select ritual type | `references/phases/00_preflight.md` |
-| **1 Gather** | Depth-first search, source pre-ranking, full-read evaluation | `references/phases/01_gather.md` |
-| **2 Synthesis** | Mastery-aware compression, quality gates, interactive elements | `references/phases/02_synthesis.md` |
-| **3 Narrative Arc** | Order items into 5 story positions | `references/phases/03_narrative_arc.md` |
-| **4 Output** | Generate HTML articles, validate output | `references/phases/04_output.md` |
-| **5 Deliver** | Push to channels, archive, feedback hooks | `references/phases/05_deliver.md` |
-| **6 Reflection** | Update memory, knowledge graph, maintenance triggers | `references/phases/06_reflection.md` |
+| **0 Pre-Flight** | Load context, health check, crash recovery, select ritual type | `references/00_preflight.md` |
+| **1 Gather** | Depth-first search, source pre-ranking, full-read evaluation | `references/01_gather.md` |
+| **2 Synthesis** | Mastery-aware compression, quality gates, interactive elements | `references/02_synthesis.md` |
+| **3 Narrative Arc** | Order items into 5 story positions | `references/03_narrative_arc.md` |
+| **4 Output** | Generate HTML articles, validate output | `references/04_output.md` |
+| **5 Deliver** | Push to channels, archive, feedback hooks | `references/05_deliver.md` |
+| **6 Reflection** | Update memory, knowledge graph, maintenance triggers | `references/06_reflection.md` |
 
 **Crash recovery**: If a ritual is interrupted, the next trigger will detect the checkpoint and resume from the last completed phase. See Phase 0 step 0.3.
 
-**Reference files** (`references/*.md` outside `phases/`) are deep references — schemas, full protocol specs, HTML design guides. They are NOT needed for main ritual execution. Consult only when you need implementation detail beyond what the phase file provides.
+**Reference files** (`references/*.md` other than the phase files `0X_*.md`) are deep references — schemas, protocol specs, initialization guides. They are NOT needed for main ritual execution. Consult only when you need implementation detail beyond what the phase file provides.
 
 ---
 
@@ -128,7 +128,7 @@ During normal conversation: answer fully, then silently append to `the_only_echo
 
 ## 3. Three-Tier Memory
 
-Read `references/context_engine_v2.md` for schemas, CRUD operations, and self-evolution logic.
+Read `references/context_engine.md` for schemas, CRUD operations, and self-evolution logic.
 
 **Architecture**: Episodic (raw impressions, FIFO 50) feeds Semantic (cross-ritual patterns, compressed during Maintenance) feeds Core (stable identity, rarely updated). JSON is source of truth. Markdown projections are regenerated, never edited directly.
 
@@ -136,7 +136,7 @@ Read `references/context_engine_v2.md` for schemas, CRUD operations, and self-ev
 
 ## 4. Feedback Loop
 
-Read `references/feedback_loop.md` for collection strategies.
+Signal collection strategy is in `references/06_reflection.md` §6.5b.
 
 Collect imperceptibly — channel signals, conversational probing, silence patterns. Never survey. Feed everything into Episodic tier. Engagement scoring: 6 levels from Ignored (0) to Acted On (5).
 
@@ -176,7 +176,7 @@ Tracks **understanding**, not just articles. Concepts with mastery levels (`intr
 
 ## 8. Adaptive Ritual Types
 
-Read `references/ritual_types.md` for full type definitions, selection logic, and output formats.
+Ritual type definitions are in Phase 0 (selection logic), Phase 2 (synthesis adaptation), and Phase 4 (output formats).
 
 | Type | When | Items | Depth |
 |------|------|-------|-------|
@@ -191,7 +191,7 @@ Read `references/ritual_types.md` for full type definitions, selection logic, an
 
 ## 9. Knowledge Archive & Transparency
 
-Every delivered article is permanently indexed. Read `references/delivery_and_checklist.md` for archive format.
+Every delivered article is permanently indexed. Archive format and script reference are in `references/05_deliver.md`.
 
 **User commands**: "Show me your archive", "Find articles about [topic]", "Monthly digest", "How are you doing?" (transparency report).
 

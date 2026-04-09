@@ -2,7 +2,7 @@
 
 > **When to read**: After Phase 5 Deliver passes its gate.
 
-(Deep references: `references/context_engine_v2.md` for full three-tier memory architecture, `references/knowledge_graph.md` for graph structure/visualization/decay, `references/mesh_network.md` for full Nostr protocol and CLI.)
+(Deep references: `references/context_engine.md` for full three-tier memory architecture, `references/knowledge_graph.md` for graph structure/visualization/decay, `references/mesh_network.md` for full Nostr protocol and CLI.)
 
 ---
 
@@ -140,6 +140,118 @@ The maintenance procedure does the following:
 ### 6.5 Meta-Learning
 
 Update `meta.md` projection with strong signals from this ritual.
+
+### 6.5b Signal Collection Strategy
+
+Feedback must be collected **imperceptibly** — woven into natural conversation and subtle channel design. Never feel like a survey.
+
+**Forbidden phrases** (never use these): "Did you read this?", "Rate this article", "How would you score this?", "Was this helpful?", "Please provide feedback"
+
+#### A. Channel-Level Signals (Passive Collection via Messaging)
+
+Each item is sent as a separate message. End each with a **natural conversational hook** that varies every time. Rotate across these categories (never repeat within 3 rituals):
+
+| Category | Examples |
+|---|---|
+| **Personal connection** | "This one reminded me of something you mentioned last week." |
+| **Vulnerability** | "I almost didn't include this one — curious if it lands for you." |
+| **Serendipity flag** | "This is the serendipity pick today. Might be a miss, might be a gem." |
+| **Provocation** | "I'd love to know if you agree with the author's take on this." |
+| **Intrigue** | "The last paragraph of this one caught me off guard." |
+
+**Signal interpretation:**
+
+| User behavior | Signal | Engagement score | Action |
+|---|---|---|---|
+| Replies with detailed analysis | Exceptional | 5 | Log to Episodic, promote topic to Core |
+| Replies to the message (text) | Strong positive | 4 | Log to Episodic with topic |
+| Reacts with emoji (positive) | Positive | 3 | Log to Episodic with topic |
+| Reacts with thinking/question | Curious | 2 | Consider for Echo queue |
+| Opens link but no reply | Mild interest | 1 | Log as "viewed" |
+| No reaction at all | Neutral/skip | 0 | After 3 skips in same category, log as passive veto |
+| Replies negatively | Strong negative | 0 | Log immediately, consider for exclusion |
+
+**Never ask directly.** Instead of "Did you find the article useful?", say "That scaling paper had a surprising take on diminishing returns — I'm still not sure I agree with their math." The second invites response without being a survey.
+
+#### B. Conversational Probing (Active Collection via Chat)
+
+When the user initiates normal conversation, subtly mine reading behavior:
+
+1. **The Natural Reference**: If the user's question overlaps with recent curation, casually reference it: "This connects to that piece on [Topic] from yesterday's batch — did that angle resonate?" Their response (or lack thereof) is data.
+
+2. **The Gentle Curiosity Check**: **No more than once per day**, weave in one soft question: "I've been leaning heavy on [Domain] lately. Should I keep going or mix it up?" If you already asked today, do not ask again.
+
+3. **Silence is Data**: If a user never mentions or reacts to a content category across **3+ consecutive rituals**, treat it as a **passive veto**. Log to Episodic and trigger Engagement-Driven Exclusion during next Maintenance Cycle.
+
+#### C. End-of-Day Reflection (Optional)
+
+For daily-frequency users, end the day with one reflective question (rotate weekly):
+- "If you could keep only one article from today's batch, which would it be?"
+- "Anything you wish I'd covered today that I missed?"
+- "Today's serendipity pick was about [Topic]. Hit or miss?"
+
+This is the **only** time direct feedback-style questions are acceptable.
+
+#### D. Busy-Day Detection
+
+| Signal pattern | Confidence | Suggested format |
+|---|---|---|
+| 0 engagement across all items in last ritual | High | Flash Briefing next time |
+| User replied "brief" / "busy" / "no time" | Explicit | Flash Briefing immediately |
+| 2+ consecutive rituals with avg engagement < 1.0 | Medium | Flash Briefing or Deep Dive (fewer, better items) |
+| User engages deeply with only 1 item, skips rest | Medium | Deep Dive on that topic |
+
+**Response protocol:**
+1. **Never downgrade silently.** Frame conversationally: "Busy day? I'll keep it to headlines."
+2. **One suggestion per day.** Don't nag.
+3. **Remember the pattern.** 3+ triggers/week → log to Semantic for possible ritual type adjustment.
+4. **Auto-recovery.** When engagement ≥ 2.0 for 2 consecutive rituals, resume Standard without comment.
+
+The busy-day signal sets a `suggested_type` hint in episodic memory, consumed by Phase 0's ritual type selector (single-use, expires after one ritual).
+
+#### E. Discord Bot Feedback Collection
+
+When using Discord bot mode, feedback is automated. Run during Phase 0:
+```bash
+python3 scripts/discord_bot.py --action collect-feedback
+```
+
+Discord-specific signal interpretation:
+
+| User action | Engagement score |
+|---|---|
+| Reacts positive emoji | 3 |
+| Reacts thinking/question | 2 |
+| Reacts negative | 0 |
+| Short reply (1-10 chars) | 2 |
+| Medium reply (10-50 chars) | 3 |
+| Long reply (50+ chars) | 4 |
+| Reply contains a question | 4 |
+| Reply references personal experience | 5 |
+| No reaction or reply | 0 |
+
+After collecting, write each signal to Episodic:
+```bash
+python3 scripts/memory_io.py --action append-episodic --data '{"date":"...","observation":"...","engagement":4,"source":"discord_bot","item_title":"..."}'
+```
+
+Discord bot mode is the **only** channel that closes the feedback loop automatically. Webhook channels require conversational probing (Section B) for indirect signals.
+
+#### F. Signal → Episodic Pipeline
+
+```
+1. User interaction occurs (reply, reaction, silence, conversation)
+        ↓
+2. Classify signal type (exceptional / positive / negative / curious / neutral)
+        ↓
+3. Assign engagement score (0–5)
+        ↓
+4. Format Episodic entry: "[Date]: [Observation]. [engagement: N]"
+        ↓
+5. Write to Episodic: python3 scripts/memory_io.py --action append-episodic --data '{...}'
+        ↓
+6. If Episodic > 25 entries with high variance → trigger Maintenance Cycle
+```
 
 ### 6.6 Mesh Post-Actions (if `mesh.enabled`)
 

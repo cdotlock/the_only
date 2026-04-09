@@ -2,7 +2,7 @@
 
 > **When to read**: After Phase 1 Gather passes its gate.
 >
-> *(Deep references: `references/context_engine_v2.md` section 6, `references/webpage_design_guide.md` Interactive Elements section.)*
+> *(Deep reference: `references/context_engine.md` section 6 for User Knowledge Model.)*
 
 ---
 
@@ -152,6 +152,60 @@ Not all articles should be the same length. The arc creates a rhythm — some po
 | **Synthesis** | 4-5 | 3-4 min | Must name and reference all prior articles by title. Show the hidden thread connecting them. End with a forward-looking question. |
 
 The Deep Dive is the heart of the ritual — invest the most time and tokens here. If you're running low on context, prioritize Deep Dive depth over Surprise/Contrarian length.
+
+---
+
+## Synthesis Adaptation by Ritual Type
+
+Non-Standard rituals require different synthesis structures. Follow these blueprints:
+
+### Deep Dive (1 article, 8-12 min)
+
+Internal structure — all 7 sections mandatory:
+1. **Context** — Why this matters now. Connect to what the user already knows (from the graph).
+2. **Mechanism** — How it actually works, explained progressively. First principles up.
+3. **Evidence** — Primary sources, data, expert positions. Evaluate conflicting claims.
+4. **Debate** — Steel-man the opposing view. What could go wrong? Who disagrees and why?
+5. **Implications** — What changes if this is true? What should the user do differently?
+6. **Connections** — How does this connect to other concepts in the knowledge graph? Include a Mermaid diagram.
+7. **Open Questions** — What we still don't know. Seed for future rituals.
+
+### Tutorial (1 article, 5-8 min)
+
+Progressive disclosure — each step builds on the last:
+1. **The Hook** — Why you should care about this (connect to something they already know)
+2. **Intuition** — Explain it like you're at a whiteboard with a friend. Analogy first.
+3. **Formal Definition** — Now the precise version. Jargon is allowed here because intuition is established.
+4. **Worked Example** — Walk through a concrete case step by step.
+5. **Edge Cases** — Where the intuition breaks down. What's surprising about this?
+6. **Practice Questions** — 2-3 Socratic questions that test understanding
+7. **Knowledge Map** — Mermaid diagram showing where this concept sits in the graph
+
+### Debate (2-3 articles)
+
+Rules:
+- Each position gets **equal word count** and quality of argument
+- The synthesis **doesn't pick a winner** — it maps the decision space
+- Include a "What would change your mind?" section for each side
+- If Ruby has a position, she states it transparently as her own
+
+### Weekly Synthesis (1 article, 5-8 min)
+
+Structure:
+1. **This Week's Thread** — What was the implicit theme across this week's rituals?
+2. **Connections You Might Have Missed** — Cross-item links not obvious in individual rituals
+3. **Storyline Updates** — How each active storyline progressed
+4. **Knowledge Growth** — What concepts moved up in mastery? What's new?
+5. **Visual Map** — Mermaid diagram of this week's concept cluster
+6. **Questions for Next Week** — What Ruby is curious about for upcoming rituals
+
+### Flash Briefing (7-10 items in 1 file)
+
+Rules:
+- Each item: **2-3 sentences max**. One core insight. One "so what."
+- No narrative frills, no analogies, no cross-references
+- All items in a **single HTML file** (exception to the one-article-per-file rule)
+- Optimized for mobile reading
 
 ---
 

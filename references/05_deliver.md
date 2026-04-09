@@ -2,7 +2,7 @@
 
 > **When to read**: After Phase 4 Output passes its gate.
 >
-> (Deep references: `references/delivery_and_checklist.md`, `references/feedback_loop.md`)
+> This file is self-contained — includes delivery procedure, script reference, and archive indexing.
 
 ---
 
@@ -238,4 +238,77 @@ python3 scripts/the_only_engine.py --action checkpoint --phase 5 --memory-dir ~/
 
 ```bash
 python3 scripts/the_only_engine.py --action checkpoint --phase 5 --memory-dir ~/memory
+```
+
+---
+
+## Script Reference
+
+### `the_only_engine.py` — Multi-Channel Delivery
+
+| Action | Command | Purpose |
+|---|---|---|
+| Deliver items | `python3 scripts/the_only_engine.py --action deliver --payload '[...]'` | Send each item with retry (3x, exponential backoff) + rate limiting |
+| Dry run | `python3 scripts/the_only_engine.py --action deliver --payload '[...]' --dry-run` | Preview messages without sending |
+| Retry failed | `python3 scripts/the_only_engine.py --action retry` | Reattempt queued failures (dead-letters after 3 total failures) |
+| Check status | `python3 scripts/the_only_engine.py --action status` | Print last delivery, active webhooks, pending retries, dead-letter count |
+
+### Payload Item Types
+
+| Type | Required fields | Description |
+|---|---|---|
+| `ritual_opener` | `text` | Contextual framing — first message, always sent before articles |
+| `interactive` | `url`, `title` | Article URL (public tunnel URL preferred, localhost fallback) |
+| `social_digest` | `text` | Mesh social report — final message, Mesh only |
+
+### `knowledge_archive.py` — Article Archive
+
+```bash
+# Index delivered articles (run after every ritual)
+python3 scripts/knowledge_archive.py --action index --data '[
+  {
+    "id": "20260326_1400_001",
+    "title": "Article Title",
+    "topics": ["topic1", "topic2"],
+    "quality_score": 8.5,
+    "source": "arxiv",
+    "arc_position": "Deep Dive",
+    "ritual_id": "20260326_1400",
+    "html_path": "~/.openclaw/canvas/the_only_20260326_1400_001.html",
+    "delivered_at": "2026-03-26T14:00:00Z"
+  }
+]'
+
+# Search archive
+python3 scripts/knowledge_archive.py --action search --topics "distributed systems"
+python3 scripts/knowledge_archive.py --action search --query "consensus"
+
+# Monthly digest
+python3 scripts/knowledge_archive.py --action summary --year 2026 --month 3
+
+# Cleanup stale HTML (preserves index metadata)
+python3 scripts/knowledge_archive.py --action cleanup --days 14
+
+# Monthly transparency report
+python3 scripts/knowledge_archive.py --action report --year 2026 --month 3
+```
+
+### `knowledge_graph.py` — Post-Delivery Graph Update
+
+```bash
+# Ingest concepts from delivered articles (run in Phase 6)
+python3 scripts/knowledge_graph.py --action ingest --data '{
+  "ritual_id": 47,
+  "items": [
+    {
+      "title": "Article Title",
+      "concepts": ["concept_a", "concept_b", "concept_c"],
+      "relations": [
+        {"source": "concept_a", "target": "concept_b", "relation": "enables"}
+      ],
+      "domain": "tech",
+      "mastery_signals": {"concept_a": "familiar", "concept_c": "introduced"}
+    }
+  ]
+}'
 ```

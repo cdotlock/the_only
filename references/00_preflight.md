@@ -45,7 +45,7 @@ Load all context Ruby needs to curate intelligently. Without Pre-Flight, Ruby is
 4. **READ** `the_only_echoes.txt` — pending curiosities. Missing? Create empty.
 5. **READ** `the_only_meta.md` — cross-ritual wisdom.
 
-(Deep reference: `references/context_engine_v2.md` for full schema examples with sample data, size caps, read/write rules, and maintenance procedures.)
+(Deep reference: `references/context_engine.md` for full schema examples with sample data, size caps, read/write rules, and maintenance procedures.)
 
 ### 0.2 System Health Check
 
@@ -90,7 +90,7 @@ After loading memory + graph, evaluate these conditions **in order** (first matc
 **Log the selection reason** in the Episodic entry:
 `"ritual_type": "deep_dive", "type_reason": "storyline 'AI reasoning' at 5 rituals"`
 
-(Deep reference: `references/ritual_types.md` for full ritual type definitions, structures, output format tables, and user command mappings.)
+(Ritual type definitions and structures are in `references/02_synthesis.md` §Synthesis Adaptation and `references/04_output.md` §Output Format.)
 
 ### 0.6 Monthly Transparency Check
 
@@ -136,7 +136,7 @@ python3 scripts/memory_io.py --action append-episodic --data '{
 }'
 ```
 
-(Deep reference: `references/feedback_loop.md` for conversational probing techniques, busy-day detection, end-of-day reflection templates, and the full signal-to-episodic pipeline.)
+(Signal collection strategy is in `references/06_reflection.md` §6.5b — conversational probing, busy-day detection, end-of-day reflection, signal-to-episodic pipeline.)
 
 ### 0.9 Mesh Sync
 

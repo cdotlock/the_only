@@ -2,7 +2,7 @@
 
 > **When to read**: After Phase 3 Narrative Arc passes its gate.
 >
-> (Deep references: `references/webpage_design_guide.md` for the full Narrative Motion Library with 8 archetypes, concept illustration guidance, interactive element CSS/HTML snippets, and glassmorphism effects. `references/delivery_and_checklist.md` for the delivery procedure, ritual opener format, post-delivery completion checklist, and script reference.)
+> (Design inspiration: `references/templates/` contains reference HTML files.)
 
 ---
 

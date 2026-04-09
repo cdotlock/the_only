@@ -577,7 +577,7 @@ def action_resume(memory_dir=None):
     if data:
         print(f"  Saved state: {json.dumps(data, ensure_ascii=False)[:200]}")
     print(f"\nRecommendation: Resume from Phase {phase + 1}.")
-    print(f"Read references/phases/{phase + 1:02d}_*.md for the next phase.")
+    print(f"Read references/{phase + 1:02d}_*.md for the next phase.")
 
 
 def action_detect_gaps(memory_dir=None):

@@ -1,7 +1,6 @@
 # Phase 1: Gather — Depth-First Search
 
 > **When to read**: After Phase 0 Pre-Flight passes its gate.
-> (Deep reference: `references/information_gathering_v2.md`)
 
 ---
 
@@ -11,10 +10,10 @@ Find the best raw material for this ritual. Quality comes from comprehension, no
 
 A ritual of 5 deeply understood articles beats 5 well-headlined articles every time. The bottleneck was never discovery — it was comprehension.
 
-| v1 | v2 |
+| Anti-pattern | Instead |
 |----|-----|
 | Scan 100+ items, score by metadata | Deeply evaluate 30-50, score by content |
-| Fixed 3-round search | Adaptive thread-following search |
+| Fixed-round search | Adaptive thread-following search |
 | All sources fetched equally | Source pre-ranking by expected yield |
 | Independent per-item scoring | Graph-level modifiers: tension, redundancy, cross-domain |
 | Items delivered as a list | Items arranged in a narrative arc |
@@ -23,7 +22,7 @@ A ritual of 5 deeply understood articles beats 5 well-headlined articles every t
 
 ## Adapt Search to Ritual Type
 
-Adapt your search count and focus based on the ritual type selected in Phase 0. (Deep reference: `references/ritual_types.md` for full type definitions and user command mappings.)
+Adapt your search count and focus based on the ritual type selected in Phase 0.
 
 | Type | Search Strategy |
 |------|----------------|
@@ -227,6 +226,20 @@ Semantic similarity = topic overlap + source overlap + argument overlap. When tw
 
 Each selected item gets composite score + `Why this:` curation reason. Mesh items: merge into pool, re-score locally. Respect `mesh.network_content_ratio`.
 
+### Step 10 — Narrative Arc Assignment
+
+Assign each selected item to an arc position based on content judgment, not formula:
+
+| Position | What makes a good fit |
+|----------|----------------------|
+| **Opening** | Timely, accessible, sets context. The reader should immediately understand why today's ritual matters. High relevance to current events + user focus. |
+| **Deep Dive** | The intellectual core. Longest, densest, most rewarding. Highest Depth + Insight Density scores. |
+| **Surprise** | Unexpected connection — a domain the user wouldn't have searched. Serendipity item, or highest cross-domain bonus. |
+| **Contrarian** | Challenges the assumptions of the other items. Highest narrative tension bonus, or a genuinely dissenting view. |
+| **Synthesis** | Ties the ritual together. Naturally connects to 2+ other items. The reader should feel closure. |
+
+**The arc is aspirational, not rigid.** If items don't naturally form a story, deliver them in score order with brief transitions. Not every ritual needs a perfect arc.
+
 ---
 
 ## Pre-Synthesis Quality Gate
@@ -242,6 +255,7 @@ Before passing to Phase 2 (Synthesis), verify all of the following:
 - [ ] At least 3 source categories represented
 - [ ] Echo items included if any echoes exist
 - [ ] Each item scored with curation reason
+- [ ] Narrative arc position assigned to each item
 - [ ] No redundancy
 
 ---
