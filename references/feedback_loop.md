@@ -40,9 +40,10 @@ Each item is sent as a **separate message** (enforced by the delivery engine). E
 
 | User behavior | Signal | Engagement score | Action |
 |---|---|---|---|
-| Replies to the message (text) | **Strong positive** | 2 | Log to Ledger with topic |
-| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 2 | Log to Ledger with topic |
-| Reacts with 🤔 or ❓ | **Curious** | 1 | Consider for Echo queue |
+| Replies with detailed analysis or personal connection | **Exceptional** | 5 | Log to Episodic, promote topic to Core |
+| Replies to the message (text) | **Strong positive** | 4 | Log to Episodic with topic |
+| Reacts with emoji (👍, ❤️, 🔥) | **Positive** | 3 | Log to Episodic with topic |
+| Reacts with 🤔 or ❓ | **Curious** | 2 | Consider for Echo queue |
 | Opens link but no reply | **Mild interest** | 1 | Log as "viewed" |
 | No reaction at all | **Neutral/skip** | 0 | After 3 skips in same category, log as passive veto |
 | Replies negatively ("boring", "not useful") | **Strong negative** | 0 | Log immediately, consider for exclusion |
@@ -77,7 +78,7 @@ When the user initiates a normal conversation with you (not specifically about R
 
 3. **Silence is Data**: If a user never mentions or reacts to a specific content category across **3+ consecutive rituals**:
    - Treat it as a **passive veto**.
-   - Log to the Ledger: `"[Date]: No engagement with [Category] across 3 consecutive rituals. Likely disinterest. [engagement: 0]"`
+   - Log to Episodic: `"[Date]: No engagement with [Category] across 3 consecutive rituals. Likely disinterest. [engagement: 0]"`
    - This pattern, once logged, will trigger Engagement-Driven Exclusion during the next Maintenance Cycle.
 
 ---
@@ -98,29 +99,114 @@ This is the **only** time direct feedback-style questions are acceptable, and on
 
 ---
 
-## D. Feeding Signals into the Context Engine
+## D. Adaptive Format Suggestion (Busy-Day Detection)
+
+When engagement signals indicate the user may be too busy for a full Standard ritual, **soft-prompt a lighter format** instead of letting content go unread.
+
+### Detection Triggers
+
+| Signal pattern | Confidence | Suggested format |
+|---|---|---|
+| 0 engagement across all items in last ritual | High | Flash Briefing next time |
+| User replied "brief" / "busy" / "later" / "no time" | Explicit | Flash Briefing immediately |
+| 2+ consecutive rituals with avg engagement < 1.0 | Medium | Flash Briefing or Deep Dive (fewer, better items) |
+| User engages deeply with only 1 item, skips rest | Medium | Deep Dive on that topic |
+| Weekend + no engagement by noon | Low | Delay next ritual by 2 hours |
+
+### Response Protocol
+
+1. **Never downgrade silently.** Always frame the suggestion conversationally:
+   - "Busy day? I'll keep it to headlines — tap any to expand later."
+   - "Looks like a packed schedule. Here's the one article I think you'll want today."
+   - "I'll hold the full batch. Say 'go' when you're ready, or I'll send a quick 3-liner."
+
+2. **One suggestion per day.** Don't nag. If the user ignores the suggestion, deliver normally next time.
+
+3. **Remember the pattern.** If busy-day detection triggers 3+ times in a week, log to Semantic memory:
+   ```
+   "[Date]: User appears consistently time-constrained this week. Consider shifting default ritual type or reducing items_per_ritual temporarily."
+   ```
+
+4. **Auto-recovery.** When the user returns to normal engagement (avg score ≥ 2.0 for 2 consecutive rituals), resume Standard format without comment.
+
+### Integration with Ritual Type Selection
+
+The busy-day signal feeds into `references/ritual_types.md` §3 (Automatic Selection). When the adaptive format system detects a busy pattern:
+- It sets a `suggested_type` hint in episodic memory
+- The ritual type selector in Phase 0 checks for this hint before applying default rules
+- The hint expires after one ritual (single-use suggestion)
+
+---
+
+## E. Discord Bot Feedback Collection
+
+When using Discord bot mode (`discord_bot.mode` in config), feedback collection is **automated** — no inference needed. The bot directly reads user replies and reactions.
+
+### Collection Flow
+
+Run during Phase 0 of every ritual:
+```bash
+python3 scripts/discord_bot.py --action collect-feedback
+```
+
+This returns structured JSON with engagement scores for each previously delivered article.
+
+### Signal Interpretation (Discord-specific)
+
+| User action | Signal | Engagement score |
+|---|---|---|
+| Reacts with 👍, ❤️, 🔥, ⭐ | **Positive** | 3 |
+| Reacts with 🤔, ❓ | **Curious** | 2 |
+| Reacts with 👎, ❌ | **Negative** | 0 |
+| Short reply (1-10 chars) | **Acknowledgment** | 2 |
+| Medium reply (10-50 chars) | **Engaged** | 3 |
+| Long reply (50+ chars) | **Deeply engaged** | 4 |
+| Reply contains a question | **Exceptional** | 4 |
+| Reply references personal experience or shares the link | **Acted on** | 5 |
+| No reaction or reply | **Silence** | 0 |
+
+### Integration with Episodic Memory
+
+After collecting feedback, write each signal to the Episodic tier:
+```bash
+python3 scripts/memory_io.py --action append-episodic --data '{
+  "date": "2026-03-27",
+  "observation": "User replied to article on [Topic]: \"[excerpt]\"",
+  "engagement": 4,
+  "source": "discord_bot",
+  "item_title": "..."
+}'
+```
+
+### Advantage over Webhook Mode
+
+Discord bot mode is the **only** delivery channel that closes the feedback loop automatically. Webhook channels (Telegram webhook, Feishu, WhatsApp) require conversational probing (Section B) to gather indirect signals. With Discord bot mode, Ruby gets explicit, timestamped feedback on every article.
+
+---
+
+## F. Feeding Signals into the Context Engine
 
 All collected signals — explicit replies, emoji reactions, referenced articles, silence patterns — must be processed through this pipeline:
 
-### Signal → Ledger Pipeline
+### Signal → Episodic Pipeline
 
 ```
 1. User interaction occurs (reply, reaction, silence, conversation)
         ↓
-2. Classify signal type (positive / negative / curious / neutral)
+2. Classify signal type (exceptional / positive / negative / curious / neutral)
         ↓
-3. Assign engagement score (0–3)
+3. Assign engagement score (0–5)
         ↓
-4. Format Ledger entry:
+4. Format Episodic entry:
    "[Date]: [Observation]. [engagement: N]"
         ↓
-5. Append to The Ledger in ~/memory/the_only_context.md
+5. Write to Episodic tier: python3 scripts/memory_io.py --action append-episodic --data '{...}'
         ↓
-6. If Ledger > 15 entries → trigger Maintenance Cycle
-   (see context_engine.md for compression procedure)
+6. If Episodic > 25 entries with high variance → trigger Maintenance Cycle
+   (see context_engine_v2.md for compression procedure)
 ```
 
-### Example Ledger Entries from Feedback
+### Example Episodic Entries from Feedback
 
 ```
 - 2026-02-22: User replied "🔥" to the neural architecture search article. [engagement: 2]

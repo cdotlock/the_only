@@ -103,11 +103,21 @@ Use a **dark, sophisticated palette**. Never use raw CSS color names (no `red`, 
 
 ### Typography
 
-**Always load Google Fonts via CDN.** Never rely on system fonts alone.
+**Load Google Fonts via CDN with system font fallbacks.** If the CDN is unreachable (e.g. restricted network environments), articles gracefully degrade to high-quality system fonts with no functional loss.
 
 ```html
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 ```
+
+```css
+:root {
+  --font-serif: 'Playfair Display', 'Noto Serif SC', 'Source Han Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', 'Noto Sans SC', 'Source Han Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+```
+
+Always reference these variables (`var(--font-serif)`, `var(--font-sans)`, `var(--font-mono)`) rather than font family names directly. This ensures CJK text renders properly even without Google Fonts.
 
 | Element | Font | Weight | Size | Notes |
 |---|---|---|---|---|
@@ -381,6 +391,426 @@ Embed the returned image URL/path directly in the HTML. Place it **immediately a
 **Mobile**: on `reading_mode: mobile`, cap at `max-width: 260px` and skip if the concept can be understood from text alone.
 
 **Graceful skip**: if `nano-banana-pro` is not available or returns no embeddable asset, omit the illustration silently. Do not insert a placeholder or broken image.
+
+---
+
+## Interactive Elements
+
+v2 articles are not passive reading — they include interactive elements that deepen understanding and create a feedback loop.
+
+### Socratic Questions
+
+Embedded at natural pause points in articles (especially Deep Dive and Tutorial types). The reader can reveal the answer by clicking.
+
+```html
+<div class="socratic-block reveal">
+  <p class="socratic-prompt">Before reading on, consider:</p>
+  <p class="socratic-question">"If scaling laws hold, why would anyone invest in efficient architectures?"</p>
+  <button class="socratic-toggle" onclick="this.nextElementSibling.classList.toggle('revealed'); this.textContent = this.textContent === 'Think, then reveal →' ? 'Hide' : 'Think, then reveal →'">Think, then reveal →</button>
+  <div class="socratic-answer">
+    <p>Because scaling laws describe averages, not margins. At the frontier, the cost curve bends exponentially — a 10x larger model might only be 2x better. Efficient architectures don't break scaling laws; they shift the cost curve so you get more intelligence per dollar.</p>
+  </div>
+</div>
+```
+
+```css
+.socratic-block {
+  margin: 2rem 0;
+  padding: 1.5rem 2rem;
+  background: rgba(139, 92, 246, 0.06);
+  border-left: 3px solid var(--accent-violet);
+  border-radius: 0 12px 12px 0;
+}
+.socratic-prompt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+}
+.socratic-question {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+.socratic-toggle {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--text-secondary);
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+.socratic-toggle:hover {
+  background: rgba(139, 92, 246, 0.25);
+  color: var(--text-primary);
+}
+.socratic-answer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.5s ease, opacity 0.5s ease, margin 0.3s ease;
+  margin-top: 0;
+}
+.socratic-answer.revealed {
+  max-height: 500px;
+  opacity: 1;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+}
+```
+
+**When to include**: 1-2 per Deep Dive or Tutorial article. 0-1 per Standard article. Never in Flash Briefings. The question must test understanding, not recall.
+
+### Thought Experiments
+
+For articles exploring abstract concepts or future implications. Frame a scenario that forces the reader to apply the concept.
+
+```html
+<div class="thought-experiment reveal">
+  <div class="te-header">
+    <span class="te-label">Thought Experiment</span>
+  </div>
+  <p class="te-scenario">"Imagine you're building a city from scratch, but every building must be able to move to a new location within 24 hours. How would this constraint change urban planning?"</p>
+  <p class="te-connection">This is essentially the problem modular microservices face: the freedom to relocate (scale, migrate) fundamentally shapes the architecture.</p>
+</div>
+```
+
+```css
+.thought-experiment {
+  margin: 2.5rem 0;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(240, 165, 0, 0.05), rgba(0, 212, 170, 0.05));
+  border: 1px solid rgba(240, 165, 0, 0.15);
+  border-radius: 16px;
+}
+.te-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-amber);
+  font-weight: 600;
+}
+.te-scenario {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin: 1rem 0;
+}
+.te-connection {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+```
+
+**When to include**: 0-1 per article. Only when the concept benefits from reframing in a different domain. The scenario must be vivid and the connection must be non-obvious.
+
+### Knowledge Maps (Mermaid Diagrams)
+
+Visual concept maps showing how the article's ideas connect to the user's existing knowledge graph. Generated by `scripts/knowledge_graph.py --action visualize`.
+
+```html
+<div class="knowledge-map reveal">
+  <div class="km-header">
+    <span class="km-label">Knowledge Map</span>
+    <span class="km-subtitle">How this connects to what you already know</span>
+  </div>
+  <pre class="mermaid">
+    graph TD
+      transformer["Transformer"]:::mastered
+      attention["Attention"]:::understood
+      mamba["Mamba / SSM"]:::introduced
+      attention -->|component_of| transformer
+      mamba -.->|challenges| attention
+  </pre>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({theme: 'dark', themeVariables: {
+  primaryColor: '#1a1a2e', primaryTextColor: '#f0f0f5',
+  lineColor: '#606078', fontSize: '14px'
+}});</script>
+```
+
+```css
+.knowledge-map {
+  margin: 2.5rem 0;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  text-align: center;
+}
+.km-header {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+.km-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+.km-subtitle {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin-top: 0.3rem;
+}
+.mermaid {
+  font-family: 'Inter', sans-serif !important;
+}
+```
+
+**Mastery color coding** (consistent across all maps):
+- Green (`#00d4aa`): mastered
+- Purple (`#8b5cf6`): understood
+- Amber (`#f0a500`): familiar
+- Gray (`#606078`): introduced/unknown
+
+**When to include**: Always in Deep Dive, Tutorial, and Weekly Synthesis. Optional in Standard (include when an article connects 4+ graph concepts). Never in Flash Briefing.
+
+### Spaced Repetition Cards
+
+Embedded at the end of articles. Key insights formatted as flash cards that Ruby can resurface in future rituals.
+
+```html
+<div class="sr-card-container reveal">
+  <div class="sr-header">
+    <span class="sr-label">Key Insight</span>
+    <span class="sr-note">Ruby will revisit this in future rituals</span>
+  </div>
+  <div class="sr-card" onclick="this.classList.toggle('flipped')">
+    <div class="sr-card-inner">
+      <div class="sr-front">
+        <p>Why does increasing model size eventually hit diminishing returns?</p>
+        <span class="sr-hint">Tap to reveal</span>
+      </div>
+      <div class="sr-back">
+        <p>Because the training data's information density is finite. Beyond a certain scale, the model learns increasingly rare patterns that don't generalize — it's memorizing, not understanding. The curve flattens when you exhaust the knowledge in the data.</p>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+```css
+.sr-card-container {
+  margin: 2rem 0;
+}
+.sr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+.sr-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--accent-ruby);
+  font-weight: 600;
+}
+.sr-note {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+.sr-card {
+  perspective: 1000px;
+  cursor: pointer;
+  min-height: 120px;
+}
+.sr-card-inner {
+  position: relative;
+  width: 100%;
+  min-height: 120px;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.sr-card.flipped .sr-card-inner {
+  transform: rotateY(180deg);
+}
+.sr-front, .sr-back {
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.sr-front {
+  background: rgba(231, 76, 111, 0.06);
+  border: 1px solid rgba(231, 76, 111, 0.2);
+}
+.sr-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform: rotateY(180deg);
+  background: rgba(231, 76, 111, 0.1);
+  border: 1px solid rgba(231, 76, 111, 0.3);
+}
+.sr-hint {
+  display: block;
+  margin-top: 0.8rem;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+}
+.sr-card p {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+```
+
+**Spaced repetition data**: After delivery, extract SR cards and append to the knowledge graph as `review_cards` on the relevant concept nodes. During future rituals, if a concept with pending review cards appears, Ruby references the insight naturally in the new article's "Previously on..." section.
+
+**When to include**: 1-2 per article in Standard, Deep Dive, Tutorial. 0 in Flash Briefing. The question side must test understanding (not recall), and the answer must be self-contained.
+
+---
+
+## In-Article Quick Actions
+
+Floating action bar at the bottom of every article. Lets the user signal feedback to Ruby without switching to the chat app.
+
+**Mechanism**: Each button opens a pre-filled message in the user's chat app (Telegram deeplink, etc.) or copies to clipboard as fallback. Zero infrastructure — the message goes to the same channel where Ruby delivers.
+
+```html
+<div class="quick-actions" id="quickActions">
+  <button onclick="sendAction('🔥 More on: ARTICLE_TOPIC')" title="More like this">🔥</button>
+  <button onclick="sendAction('🔬 Deep dive: ARTICLE_TOPIC')" title="Dig deeper">🔬</button>
+  <button onclick="sendAction('📌 Save: ARTICLE_TITLE')" title="Save for later">📌</button>
+  <button onclick="sendAction('💤 Less: ARTICLE_TOPIC')" title="Less of this">💤</button>
+</div>
+
+<script>
+// Populated during HTML generation from config
+const FEEDBACK_LINKS = {
+  telegram: 'https://t.me/BOT_USERNAME?text=',  // replace BOT_USERNAME
+  discord: null,  // Discord doesn't support message deeplinks
+};
+
+function sendAction(message) {
+  const encoded = encodeURIComponent(message);
+  if (FEEDBACK_LINKS.telegram) {
+    window.open(FEEDBACK_LINKS.telegram + encoded, '_blank');
+  } else {
+    navigator.clipboard.writeText(message).then(() => {
+      showToast('Copied — paste in your chat to tell Ruby');
+    });
+  }
+}
+
+function showToast(text) {
+  const toast = document.createElement('div');
+  toast.className = 'action-toast';
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Show after 30% scroll (user is engaged, not bouncing)
+let actionsShown = false;
+window.addEventListener('scroll', () => {
+  if (!actionsShown && window.scrollY / (document.body.scrollHeight - window.innerHeight) > 0.3) {
+    document.getElementById('quickActions').classList.add('visible');
+    actionsShown = true;
+  }
+});
+</script>
+```
+
+```css
+.quick-actions {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  z-index: 999;
+}
+.quick-actions.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.quick-actions button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.quick-actions button:hover {
+  transform: scale(1.15);
+  border-color: var(--accent-ruby);
+  box-shadow: 0 0 20px rgba(231, 76, 111, 0.2);
+}
+@media (max-width: 768px) {
+  .quick-actions {
+    bottom: 1rem;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+  }
+  .quick-actions.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+  .quick-actions button { width: 52px; height: 52px; }
+}
+.action-toast {
+  position: fixed;
+  bottom: 6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 15, 0.9);
+  color: var(--text-secondary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  animation: fadeInOut 3s ease forwards;
+  z-index: 1000;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+```
+
+**Button actions:**
+
+| Button | Message | Ruby's action |
+|--------|---------|---------------|
+| 🔥 | "More on: [topic]" | Append to echoes.txt, boost topic in next ritual |
+| 🔬 | "Deep dive: [topic]" | Trigger Deep Dive ritual type for next delivery |
+| 📌 | "Save: [title]" | Add to saved list in episodic, revisit in Weekly Synthesis |
+| 💤 | "Less: [topic]" | Reduce topic weight in semantic ratios |
+
+**Rules:**
+- Appear after 30% scroll (user is actually reading).
+- Include in Standard, Deep Dive, Debate, Tutorial articles. Never in Flash Briefing.
+- On mobile: larger targets (52px), center-bottom position.
+- Replace `ARTICLE_TOPIC` and `ARTICLE_TITLE` during HTML generation.
+- Replace `BOT_USERNAME` with the Telegram bot username from config (extract from webhook URL).
 
 ---
 

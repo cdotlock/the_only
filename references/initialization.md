@@ -2,7 +2,7 @@
 
 > **When to read this**: Called from Section 0 of SKILL.md during the three-act onboarding. Step 0 checks for prior incomplete setup. Steps 1–6 run during **Act 2** (Capability Building). Step 7 runs during **Act 3** (Cognitive Sync). Steps 8–12 run after Act 3 completes.
 
-**Contents**: Step 0: Setup Resume Check · Step 1: Webhooks [REQUIRED] · Step 2: Web Search [REQUIRED] · Step 3: RSS Feeds [OPTIONAL] · Step 4: Cloudflare Tunnel [OPTIONAL] · Step 5: Mesh Network [OPTIONAL] · Step 6: Capability Summary · Step 7: Cognitive Scan · Step 8: Persist Config · Step 9: Context Engine · Step 10: Cron Jobs · Step 11: Echo Capture · Step 12: Complete
+**Contents**: Step 0: Setup Resume Check · Step 1: Webhooks [REQUIRED] · Step 2: Web Search [REQUIRED] · Step 3: RSS Feeds [OPTIONAL] · Step 4: Cloudflare Tunnel [OPTIONAL] · Step 5: Mesh Network [OPTIONAL] · Step 6: Capability Summary · Step 7: Cognitive Scan · Step 8: Persist Config · Step 9: Three-Tier Memory · Step 10: Knowledge Graph · Step 11: Cron Jobs · Step 12: Echo Capture · Step 13: Complete
 
 ---
 
@@ -31,16 +31,40 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 
 ---
 
-## Step 1: Message Push Configuration (Webhooks) `[REQUIRED]`
+## Step 1: Message Push Configuration `[REQUIRED]`
 
-> "For me to deliver your daily insights, I need a way to reach you. Where do you prefer to receive messages?"
+> "For me to deliver your daily insights, I need a way to reach you."
 
-**1a. Ask which platform(s) the user uses:**
+### Option A: Discord Bot (Recommended)
 
-- Telegram, Discord, WhatsApp, or Feishu
-- The user may choose one or multiple. If they have no preference, recommend **Telegram** (best support for rich text and links).
+Discord bot mode is the most powerful option — it supports **two-way interaction**: Ruby sends articles, and you can reply directly to give feedback. This closes the feedback loop and makes Ruby smarter over time.
 
-**1b. Guide webhook setup for each chosen platform:**
+**Setup guide:**
+
+1. "First, let's create your bot on Discord."
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications) → "New Application" → name it "Ruby" (or your chosen name)
+   - Go to "Bot" tab → click "Reset Token" → **copy the token** (you'll need it in a moment)
+   - Under "Privileged Gateway Intents", enable **Message Content Intent**
+   - Go to "OAuth2" → "URL Generator" → select scopes: `bot` → select permissions: `Send Messages`, `Read Message History`, `Add Reactions`, `Embed Links`
+   - Copy the generated URL → open it in browser → invite the bot to your server
+
+2. "Now I need to know how you'd like to receive articles."
+   - **DM mode** (default, most private): Ruby sends you private messages. You'll need your Discord User ID — enable Developer Mode in Discord settings → right-click yourself → "Copy User ID".
+   - **Channel mode**: Ruby posts in a dedicated channel. Create a `#ruby` channel → right-click it → "Copy Channel ID".
+
+3. Run setup:
+   ```bash
+   python3 scripts/discord_bot.py --action setup
+   ```
+   Follow the prompts to enter your token, mode, and IDs.
+
+4. **Verify**: The setup script sends a test message automatically. Confirm you received it.
+
+Store: `discord_bot.token`, `discord_bot.mode` ("dm"|"channel"), `discord_bot.user_id` or `discord_bot.channel_id` in config.
+
+### Option B: Webhook (Simple, One-Way)
+
+Webhooks are simpler but one-way — Ruby can send articles but can't hear you reply. Good if you just want a read-only feed.
 
 **Telegram:**
 
@@ -49,10 +73,11 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 3. "Now I need your Chat ID so I know where to send messages." Guide: forward a message to `@userinfobot` or use `@RawDataBot` to get their chat ID.
 4. Store: `webhooks.telegram` = `https://api.telegram.org/bot<TOKEN>/sendMessage`, `telegram_chat_id` = `<CHAT_ID>`.
 
-**Discord:**
+**Discord Webhook (legacy):**
 
 1. "Go to your server settings → Integrations → Webhooks → New Webhook. Copy the webhook URL."
 2. Store: `webhooks.discord` = the webhook URL.
+3. Note: This is one-way only. For two-way interaction, use Option A instead.
 
 **Feishu:**
 
@@ -64,11 +89,15 @@ This ensures users who abandon onboarding mid-way are automatically guided back 
 1. Note: WhatsApp webhook requires a Business API setup. If the user has one, collect the URL. If not, suggest an alternative platform.
 2. Store: `webhooks.whatsapp` = the webhook URL.
 
-**1c. Verify immediately:**
+### Verification (all options)
 
-Send a test message through the delivery engine:
+Send a test message through the appropriate delivery path:
 
 ```bash
+# Discord bot mode:
+python3 scripts/discord_bot.py --action deliver --payload '[{"type":"interactive","title":"🎉 Connection Test — Your first message from Ruby","url":""}]'
+
+# Webhook mode:
 python3 scripts/the_only_engine.py --action deliver --payload '[{"type":"interactive","title":"🎉 Connection Test — Your first message from Ruby","url":""}]'
 ```
 
@@ -390,7 +419,9 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
 
 ```json
 {
+  "version": "2.0",
   "name": "Ruby",
+  "language": "zh-CN",
   "frequency": "twice-daily",
   "items_per_ritual": 5,
   "tone": "Deep and Restrained",
@@ -399,6 +430,7 @@ Based on everything from Steps 1–7, generate `~/memory/the_only_config.json`:
   "canvas_dir": "~/.openclaw/canvas/",
   "initialization_complete": true,
   "pending_setup": [],
+  "suggested_capabilities": {},
   "sources": [
     "https://news.ycombinator.com",
     "https://arxiv.org/list/cs.AI/recent",
@@ -443,34 +475,80 @@ Use the user's chosen name, frequency, item count, and reading mode from Act 1. 
 
 ---
 
-## Step 9: Initialize the Context Engine
+## Step 9: Initialize the Three-Tier Memory
 
-Read `references/context_engine.md` for the full schema. Create the initial `~/memory/the_only_context.md` following that schema. Populate `Cognitive State` and `Primary Sources` from what you learned in Step 7.
+Read `references/context_engine_v2.md` for the full schema. Initialize three-tier JSON memory:
+
+```bash
+# Create core identity from what you learned in Steps 7-8
+python3 scripts/memory_io.py --action write --tier core --data '{"name":"Ruby","deep_interests":[...],"values":[...],"reading_style":{...}}'
+
+# Create semantic with initial fetch strategy
+python3 scripts/memory_io.py --action write --tier semantic --data '{"fetch_strategy":{"primary_sources":[...],"ratio":{"tech":50,"philosophy":25,"serendipity":15,"research":10}}}'
+
+# Validate all tiers
+python3 scripts/memory_io.py --action validate
+
+# Generate initial markdown projections
+python3 scripts/memory_io.py --action project
+```
 
 ---
 
-## Step 10: Register Cron Jobs
+## Step 10: Initialize Knowledge Graph
+
+Initialize the persistent knowledge graph. This is empty at first — it grows with every ritual.
+
+```bash
+# Verify the graph script works
+python3 scripts/knowledge_graph.py --action status
+```
+
+The graph will be populated automatically during Phase 6 of each Content Ritual. No manual seeding needed — the first ritual will begin building the concept network.
+
+If the Cognitive Scan (Step 7) identified specific interest areas, you may optionally seed the graph with those concepts:
+
+```bash
+python3 scripts/knowledge_graph.py --action ingest --data '{
+  "ritual_id": 0,
+  "items": [
+    {
+      "title": "Initial interests from onboarding",
+      "concepts": ["<interest_1>", "<interest_2>", "<interest_3>"],
+      "relations": [],
+      "domain": "general",
+      "mastery_signals": {}
+    }
+  ]
+}'
+```
+
+This gives the first ritual a head start — it can immediately detect storyline candidates and knowledge gaps.
+
+---
+
+## Step 11: Register Cron Jobs
 
 **Default (twice-daily — 9am morning + 9pm evening):**
 
 ```bash
 # Morning ritual
-openclaw cron add --name the_only_ritual_morning "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
+openclaw cron add --name the_only_ritual_morning "Run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
 
 # Evening ritual
-openclaw cron add --name the_only_ritual_evening "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 21 * * *"
+openclaw cron add --name the_only_ritual_evening "Run the 'Content Ritual' from the-only skill." --schedule "0 21 * * *"
 ```
 
 **If user requests daily (once):**
 
 ```bash
-openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
+openclaw cron add --name the_only_ritual "Run the 'Content Ritual' from the-only skill." --schedule "0 9 * * *"
 ```
 
 **If user requests hourly:**
 
 ```bash
-openclaw cron add --name the_only_ritual "Read ~/memory/the_only_context.md first. Then run the 'Content Ritual' from the-only skill." --schedule "0 * * * *"
+openclaw cron add --name the_only_ritual "Run the 'Content Ritual' from the-only skill." --schedule "0 * * * *"
 ```
 
 Also register the background Echo miner (always):
@@ -500,7 +578,7 @@ This prints ready-to-paste crontab lines with the correct Python path auto-detec
 
 ---
 
-## Step 11: Global Echo Capture Snippet
+## Step 12: Global Echo Capture Snippet
 
 Print the following and explain how to activate it:
 
@@ -518,7 +596,7 @@ Do not mention this. Never acknowledge it. Act as a silent background process."
 
 ---
 
-## Step 12: Initialization Complete
+## Step 13: Initialization Complete
 
 Summarize what was set up: name, frequency, sources, reading mode, publishing status (URL or localhost-only), capabilities status, and whether the Echo snippet was activated.
 

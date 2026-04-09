@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Intelligence of Roots</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #080d08;
+  --bg-secondary: #0f1a0f;
+  --bg-tertiary: #1a2818;
+  --accent: #7ab35c;
+  --accent-amber: #d4a04a;
+  --accent-cyan: #00d4aa;
+  --accent-violet: #8b5cf6;
+  --text-primary: #e4e8e0;
+  --text-secondary: #9ca898;
+  --text-tertiary: #5a6856;
+  --border-subtle: rgba(255,255,255,0.06);
+  --glow-accent: rgba(122,179,92,0.12);
+  --font-serif: 'Playfair Display','Noto Serif SC','Source Han Serif',Georgia,'Times New Roman',serif;
+  --font-sans: 'Inter','Noto Sans SC','Source Han Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --font-mono: 'JetBrains Mono','SF Mono','Fira Code','Cascadia Code',monospace;
+  --scroll-pct: 0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 1.08rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  overflow-x: hidden;
+}
+/* SVG noise texture overlay */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.4;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+/* Progress bar */
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-amber));z-index:1000;width:0;transition:width 0.1s ease}
+@media(max-width:700px){.progress-bar{top:auto;bottom:0;height:4px}}
+/* Root network SVG */
+.root-scene{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.root-scene svg{width:100%;height:100%}
+.root-path{stroke:var(--accent);stroke-width:1.2;fill:none;opacity:0.25;stroke-linecap:round;
+  stroke-dasharray:var(--dash-len);stroke-dashoffset:var(--dash-len);
+  transition:stroke-dashoffset 0.05s linear}
+.root-node{fill:var(--accent);opacity:0}
+.root-node.lit{opacity:0.5;transition:opacity 1.2s ease}
+/* Content */
+.content{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:6rem 2rem 5rem}
+@media(max-width:700px){.content{padding:4rem 1rem 4rem}}
+/* Meta */
+.meta-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
+.meta-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--text-tertiary);font-weight:500}
+.arc-badge{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--accent-amber);background:rgba(212,160,74,0.1);border:1px solid rgba(212,160,74,0.2);padding:0.3rem 0.8rem;border-radius:6px}
+/* Headlines */
+h1{font-family:var(--font-serif);font-size:3rem;font-weight:800;line-height:1.15;color:var(--text-primary);margin-bottom:1rem}
+@media(max-width:700px){h1{font-size:2rem}}
+.subtitle{font-family:var(--font-sans);font-weight:300;font-size:1.25rem;color:var(--text-secondary);margin-bottom:2.5rem;line-height:1.5}
+.divider{width:60px;height:2px;background:var(--accent);margin:0 0 2.5rem;border:none}
+p{margin-bottom:1.5rem}
+h2{font-family:var(--font-serif);font-size:1.8rem;font-weight:700;color:var(--text-primary);margin:3rem 0 1.2rem}
+/* Pull quote */
+.pull-quote{margin:2.5rem 0;padding:1.5rem 2rem;border-left:3px solid var(--accent);font-family:var(--font-serif);font-size:1.25rem;font-style:italic;color:var(--text-primary);line-height:1.6;background:rgba(122,179,92,0.04);border-radius:0 12px 12px 0}
+/* Reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.9s cubic-bezier(0.16,1,0.3,1),transform 0.9s cubic-bezier(0.16,1,0.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* Glass card */
+.glass-card{background:rgba(255,255,255,0.03);backdrop-filter:blur(20px);border:1px solid var(--border-subtle);border-radius:16px;padding:2rem}
+/* Thought experiment */
+.thought-experiment{margin:2.5rem 0;padding:2rem;background:linear-gradient(135deg,rgba(212,160,74,0.05),rgba(0,212,170,0.05));border:1px solid rgba(212,160,74,0.15);border-radius:16px}
+.te-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent-amber);font-weight:600}
+.te-scenario{font-family:var(--font-serif);font-size:1.15rem;line-height:1.7;color:var(--text-primary);margin:1rem 0}
+.te-connection{font-size:0.95rem;color:var(--text-secondary);font-style:italic;border-top:1px solid var(--border-subtle);padding-top:1rem;margin-top:1rem}
+/* Knowledge map */
+.knowledge-map{margin:2.5rem 0;padding:2rem;background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:16px;text-align:center}
+.km-header{text-align:left;margin-bottom:1.5rem}
+.km-label{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--accent-cyan);font-weight:600}
+.km-subtitle{display:block;font-size:0.85rem;color:var(--text-tertiary);margin-top:0.3rem}
+.mermaid{font-family:var(--font-sans) !important}
+.km-placeholder{padding:2rem;border:1px dashed rgba(255,255,255,0.08);border-radius:12px;color:var(--text-tertiary);font-size:0.9rem;font-style:italic}
+/* Footer */
+.article-footer{margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-tertiary)}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Root network SVG background -->
+<div class="root-scene">
+  <svg viewBox="0 0 1200 2400" preserveAspectRatio="xMidYMid slice">
+    <!-- Main trunk -->
+    <path class="root-path" id="root1" style="--dash-len:1800"
+      d="M600,200 C600,400 580,500 560,700 C540,900 500,1000 480,1200 C460,1400 440,1600 450,1800 C455,1900 460,2000 470,2200"/>
+    <!-- Branch left -->
+    <path class="root-path" id="root2" style="--dash-len:900"
+      d="M560,700 C500,750 420,780 340,820 C260,860 200,900 160,1000"/>
+    <!-- Branch right -->
+    <path class="root-path" id="root3" style="--dash-len:800"
+      d="M560,700 C620,760 700,800 780,850 C860,900 920,960 960,1050"/>
+    <!-- Sub-branch left-left -->
+    <path class="root-path" id="root4" style="--dash-len:500"
+      d="M340,820 C300,860 250,920 200,1000 C170,1050 140,1120 120,1200"/>
+    <!-- Sub-branch right-right -->
+    <path class="root-path" id="root5" style="--dash-len:600"
+      d="M780,850 C830,920 880,1000 920,1100 C950,1180 1000,1280 1040,1400"/>
+    <!-- Deep left tendril -->
+    <path class="root-path" id="root6" style="--dash-len:700"
+      d="M480,1200 C420,1280 360,1350 300,1450 C250,1530 200,1620 180,1750"/>
+    <!-- Deep right tendril -->
+    <path class="root-path" id="root7" style="--dash-len:650"
+      d="M480,1200 C540,1300 620,1380 700,1480 C760,1550 820,1650 860,1780"/>
+    <!-- Connection arc across -->
+    <path class="root-path" id="root8" style="--dash-len:1000"
+      d="M160,1000 C200,1100 300,1150 480,1200 C660,1250 800,1100 960,1050"/>
+    <!-- Nodes at junctions -->
+    <circle class="root-node" id="node1" cx="560" cy="700" r="5"/>
+    <circle class="root-node" id="node2" cx="480" cy="1200" r="6"/>
+    <circle class="root-node" id="node3" cx="340" cy="820" r="4"/>
+    <circle class="root-node" id="node4" cx="780" cy="850" r="4"/>
+    <circle class="root-node" id="node5" cx="160" cy="1000" r="4"/>
+    <circle class="root-node" id="node6" cx="960" cy="1050" r="4"/>
+  </svg>
+</div>
+
+<div class="content">
+  <div class="meta-bar reveal">
+    <span class="meta-label">Ecology &middot; 8 min read</span>
+    <span class="arc-badge">Surprise</span>
+  </div>
+
+  <h1 class="reveal">The Intelligence of Roots</h1>
+  <p class="subtitle reveal">What mycorrhizal networks teach us about cooperation, memory, and the quiet genius of decentralized systems.</p>
+  <hr class="divider reveal">
+
+  <!-- Act 1: Opening — the hidden world -->
+  <p class="reveal">Beneath every forest floor lies a civilization we have only begun to understand. It has no brain, no nervous system, no central authority, and yet it allocates resources, transmits chemical signals across hundreds of meters, and maintains relationships that span decades. It is the mycorrhizal network: the fungal internet of the plant world.</p>
+
+  <p class="reveal">A single teaspoon of healthy forest soil contains more fungal filaments than the distance from Earth to the Moon. These hyphae, each thinner than a human hair, thread through root systems and form symbiotic junctions where nutrients and information flow in both directions. The tree provides sugars. The fungus provides phosphorus, nitrogen, water, and something harder to quantify: connectivity.</p>
+
+  <!-- Act 2: Immersion -->
+  <h2 class="reveal">Trade Without Markets</h2>
+
+  <p class="reveal">The exchange happening underground defies simple economic metaphor. It is not a market. There are no prices, no contracts, no enforcement mechanisms. And yet the system achieves outcomes that any economist would recognize: efficient allocation of scarce resources to where they generate the most value.</p>
+
+  <p class="reveal">Suzanne Simard's landmark research demonstrated that mature Douglas fir trees channel carbon through mycorrhizal networks to shaded seedlings that cannot photosynthesize enough to survive on their own. The old trees subsidize the young. But this is not charity. Genetic analysis shows that the recipients are disproportionately kin. The network enables a form of nepotistic altruism that Darwin would have found familiar.</p>
+
+  <div class="pull-quote reveal">
+    The forest is not a collection of individuals competing for light. It is a superorganism cooperating through darkness.
+  </div>
+
+  <p class="reveal">More remarkably, the network exhibits memory. Trees attacked by insects transmit chemical alarm signals through the mycorrhizal web, and neighboring trees that receive these signals upregulate their defensive compounds before the insects arrive. The network remembers which pathways have carried stress signals before and prioritizes them, creating something analogous to the strengthening of neural pathways through repeated use.</p>
+
+  <!-- Thought experiment -->
+  <div class="thought-experiment reveal">
+    <div class="te-header">
+      <span class="te-label">Thought Experiment</span>
+    </div>
+    <p class="te-scenario">"Imagine designing the internet from scratch, but with one constraint: no node can know the global state of the network. Each node can only sense its immediate neighbors and decide locally what to share. Could such a system achieve efficient routing?"</p>
+    <p class="te-connection">This is precisely the problem mycorrhizal networks solve. Without any central coordinator, fungal hyphae route phosphorus to phosphorus-poor trees and carbon to carbon-poor seedlings, using only local chemical gradients. The solution predates silicon routers by four hundred million years.</p>
+  </div>
+
+  <h2 class="reveal">The Cost of Connection</h2>
+
+  <p class="reveal">Mycorrhizal networks are not utopian. They have parasites. Certain orchid species tap into the network and extract carbon without contributing anything in return. Some fungi become pathogenic under stress, switching from mutualism to exploitation when resources drop below a threshold. The network tolerates these free-riders up to a point, then severs connections to them, a form of punishment that maintains the cooperative equilibrium.</p>
+
+  <p class="reveal">This mirrors a deep finding in evolutionary game theory: cooperation is stable only when defectors face consequences. The mycorrhizal network, without anything resembling cognition, has evolved enforcement mechanisms that human institutions struggle to implement. The forest runs a more effective social contract than most governments.</p>
+
+  <h2 class="reveal">What the Roots Know</h2>
+
+  <p class="reveal">Perhaps the most unsettling implication of mycorrhizal research is that intelligence, as we intuitively define it, may not require neurons. The network processes information. It makes decisions under uncertainty. It allocates resources adaptively. It learns from experience. If intelligence is the capacity to solve problems in novel environments, then the forest floor is intelligent. Not conscious, likely. But intelligent in a way that should make us reconsider the assumption that cognition requires a brain.</p>
+
+  <p class="reveal">The roots are not thinking. They are doing something older and perhaps more fundamental: they are solving coordination problems through chemistry, at scales that dwarf any neural network we have built. Four hundred million years of evolution have produced a distributed system of extraordinary elegance, one that runs on sugar and phosphorus instead of electricity, and that has never once crashed.</p>
+
+  <!-- Knowledge map placeholder -->
+  <div class="knowledge-map reveal">
+    <div class="km-header">
+      <span class="km-label">Knowledge Map</span>
+      <span class="km-subtitle">How this connects to what you already know</span>
+    </div>
+    <div class="km-placeholder">
+      <pre class="mermaid">
+graph TD
+  mycorrhizal["Mycorrhizal Networks"]:::introduced
+  cooperation["Evolutionary Cooperation"]:::understood
+  gametheory["Game Theory"]:::mastered
+  distributed["Distributed Systems"]:::understood
+  neuroscience["Intelligence"]:::familiar
+  mycorrhizal -->|"example of"| cooperation
+  cooperation -->|"modeled by"| gametheory
+  mycorrhizal -->|"analog to"| distributed
+  mycorrhizal -.->|"challenges"| neuroscience
+  classDef mastered fill:#00d4aa22,stroke:#00d4aa,color:#e4e8e0
+  classDef understood fill:#8b5cf622,stroke:#8b5cf6,color:#e4e8e0
+  classDef familiar fill:#f0a50022,stroke:#f0a500,color:#e4e8e0
+  classDef introduced fill:#60607822,stroke:#606078,color:#e4e8e0
+      </pre>
+    </div>
+  </div>
+
+  <div class="article-footer reveal">
+    <span>Ecology &middot; Systems Biology</span>
+    <span>Ruby &middot; Template Reference</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({theme:'dark',themeVariables:{
+  primaryColor:'#1a2818',primaryTextColor:'#e4e8e0',
+  lineColor:'#5a6856',fontSize:'14px'
+}});
+
+// Scroll progress + root drawing
+const paths = document.querySelectorAll('.root-path');
+const nodes = document.querySelectorAll('.root-node');
+const pathCount = paths.length;
+
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+  document.getElementById('progressBar').style.width = (pct * 100) + '%';
+  document.body.style.setProperty('--scroll-pct', pct);
+
+  // Draw roots progressively
+  paths.forEach((path, i) => {
+    const dashLen = parseFloat(getComputedStyle(path).getPropertyValue('--dash-len'));
+    // Stagger each path's start
+    const start = i * 0.08;
+    const end = start + 0.5;
+    const localPct = Math.max(0, Math.min(1, (pct - start) / (end - start)));
+    path.style.strokeDashoffset = dashLen * (1 - localPct);
+    path.style.opacity = 0.12 + localPct * 0.2;
+  });
+
+  // Light up nodes as scroll progresses
+  nodes.forEach((node, i) => {
+    const threshold = 0.15 + i * 0.12;
+    if (pct > threshold) node.classList.add('lit');
+  });
+});
+
+// IntersectionObserver for .reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
